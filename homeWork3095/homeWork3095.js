@@ -10,6 +10,13 @@ webserver.use(express.urlencoded({ extended: true }));
 const port = 7980;
 const logFN = path.join(__dirname, "_server.log");
 const logVotesFN = path.join(__dirname, "_data.log");
+const colors = [
+  { label: "green" },
+  { label: "yellow" },
+  { label: "blue" },
+  { label: "red" },
+  { label: "pink" },
+];
 
 function logLineSync(logFilePath, logLine) {
   const logDT = new Date();
@@ -50,6 +57,10 @@ function logVotesSync(logFilePath, color) {
   fs.writeFileSync(logFdToWrite, newData, { encoding: "utf8", flag: "w" });
   fs.closeSync(logFdToWrite);
 }
+
+webserver.get("/variants", (req, res) => {
+  res.status(200).send(colors);
+});
 
 webserver.post("/vote", (req, res) => {
   logVotesSync(logVotesFN, req.body.color);
