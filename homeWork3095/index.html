@@ -213,7 +213,7 @@
       const formTag = document.forms.options;
       formTag.addEventListener("submit", handleSubmit, false);
 
-      async function handleSubmit(EO) {
+      function handleSubmit(EO) {
         EO = EO || window.event;
         const formTag = document.forms.options;
         const color = formTag.elements.color.value;
