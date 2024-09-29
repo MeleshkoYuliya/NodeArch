@@ -188,20 +188,22 @@
             for (let key in json) {
               if (json.hasOwnProperty(key)) {
                 const val = json[key];
-                const dataspan = `
+                if (val.color) {
+                  const dataspan = `
                       <span>${val.color}</span>:
                       <span>${val.count}</span>
                     `;
-                const node = document.createElement("div");
-                node.classList.add("stat");
-                node.setAttribute("id", val.color);
+                  const node = document.createElement("div");
+                  node.classList.add("stat");
+                  node.setAttribute("id", val.color);
 
-                const oldEl = document.getElementById(val.color);
-                if (oldEl) {
-                  document.getElementById("stat").removeChild(oldEl);
+                  const oldEl = document.getElementById(val.color);
+                  if (oldEl) {
+                    document.getElementById("stat").removeChild(oldEl);
+                  }
+                  document.getElementById("stat").appendChild(node).innerHTML =
+                    dataspan;
                 }
-                document.getElementById("stat").appendChild(node).innerHTML =
-                  dataspan;
               }
             }
           })
