@@ -71,6 +71,18 @@ webserver.get("/voting", (req, res) => {
   res.sendFile(path.resolve(__dirname, "index.html"));
 });
 
+webserver.post("/stat", (req, res) => {
+  const logFd = fs.openSync(logVotesFN, "a+");
+  const data = fs.readFileSync(logVotesFN, { encoding: "utf8", flag: "r" });
+  const colorsArr = data.split("|");
+  const dataJson = colorsArr.map((item) => {
+    const [colorName, count] = item.split("=");
+    return { color: colorName, count };
+  });
+  fs.closeSync(logFd);
+  res.status(200).send(dataJson);
+});
+
 webserver.listen(port, () => {
   logLineSync(logFN, "web server running on port " + port);
 });

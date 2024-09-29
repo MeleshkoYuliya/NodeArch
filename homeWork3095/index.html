@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
+      .mainContainer {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+
       .button {
         border: none;
         border-radius: 4px;
@@ -17,6 +23,7 @@
         position: relative;
         background-color: #fff;
         box-sizing: border-box;
+        text-transform: capitalize;
       }
       .green {
         border: solid 2px green;
@@ -111,45 +118,109 @@
         background-color: #fff;
         margin-top: 24px;
       }
+
+      .stat {
+        font-size: 18px;
+        text-transform: capitalize;
+      }
     </style>
   </head>
   <body>
-    <form
-      class="container"
-      method="POST"
-      action="http://localhost:7980/vote"
-      target="example"
-    >
-      <h1>Choose your favourite color</h1>
-      <div id="container" class="container"></div>
-      <input type="submit" value="Send" class="sendButton" />
-    </form>
-    <script>
-      fetch("http://localhost:7980/variants")
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((json) => {
-          for (let key in json) {
-            if (json.hasOwnProperty(key)) {
-              let val = json[key];
-              let dataspan = `
+    <div class="mainContainer">
+      <form
+        class="container"
+        method="POST"
+        action="/vote"
+        target="example"
+        name="options"
+        novalidate
+      >
+        <h1>Choose your favourite color</h1>
+        <div id="container" class="container"></div>
+        <input type="submit" value="Send" class="sendButton" />
+      </form>
+      <div class="container">
+        <h1>Statistic</h1>
+        <div id="stat" class="container"></div>
+      </div>
+    </div>
+
+    <script async>
+      function handleGetVariants() {
+        fetch("/variants")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((json) => {
+            for (let key in json) {
+              if (json.hasOwnProperty(key)) {
+                let val = json[key];
+                let dataspan = `
                       <input type="radio" name="color" value=${val.label}>
                       ${val.label}
                       <span class="checkmark"></span>
                     `;
-              const node = document.createElement("label");
-              node.classList.add("button");
-              node.classList.add(val.label);
-              document.getElementById("container").appendChild(node).innerHTML =
-                dataspan;
+                const node = document.createElement("label");
+                node.classList.add("button");
+                node.classList.add(val.label);
+                document
+                  .getElementById("container")
+                  .appendChild(node).innerHTML = dataspan;
+              }
             }
-          }
-        })
-        .catch((err) => console.error(`Fetch problem: ${err.message}`));
+          })
+          .catch((err) => console.error(`Fetch problem: ${err.message}`));
+      }
+
+      function handleGetStat() {
+        fetch("/stat", { method: "POST" })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error: ${response.status}`);
+            }
+
+            return response.json();
+          })
+          .then((json) => {
+            for (let key in json) {
+              if (json.hasOwnProperty(key)) {
+                const val = json[key];
+                const dataspan = `
+                      <span>${val.color}</span>:
+                      <span>${val.count}</span>
+                    `;
+                const node = document.createElement("div");
+                node.classList.add("stat");
+                node.setAttribute("id", val.color);
+
+                const oldEl = document.getElementById(val.color);
+                if (oldEl) {
+                  document.getElementById("stat").removeChild(oldEl);
+                }
+                document.getElementById("stat").appendChild(node).innerHTML =
+                  dataspan;
+              }
+            }
+          })
+          .catch((err) => console.error(`Fetch problem: ${err.message}`));
+      }
+
+      const formTag = document.forms.options;
+      formTag.addEventListener("submit", handleSubmit, false);
+
+      async function handleSubmit(EO) {
+        EO = EO || window.event;
+        const formTag = document.forms.options;
+        const color = formTag.elements.color.value;
+
+        handleGetStat();
+      }
+
+      handleGetVariants();
+      handleGetStat();
     </script>
   </body>
 </html>
