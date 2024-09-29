@@ -23,7 +23,6 @@
         position: relative;
         background-color: #fff;
         box-sizing: border-box;
-        text-transform: capitalize;
       }
       .green {
         border: solid 2px green;
@@ -127,14 +126,7 @@
   </head>
   <body>
     <div class="mainContainer">
-      <form
-        class="container"
-        method="POST"
-        action="/vote"
-        target="example"
-        name="options"
-        novalidate
-      >
+      <form class="container" name="options" novalidate onsubmit="handleSubmit">
         <h1>Choose your favourite color</h1>
         <div id="container" class="container"></div>
         <input type="submit" value="Send" class="sendButton" />
@@ -146,6 +138,14 @@
     </div>
 
     <script async>
+      const colors = [
+        { label: "Green", id: "green" },
+        { label: "Yellow", id: "yellow" },
+        { label: "Blue", id: "blue" },
+        { label: "Red", id: "red" },
+        { label: "Pink", id: "pink" },
+      ];
+
       function handleGetVariants() {
         fetch("/variants")
           .then((response) => {
@@ -159,13 +159,13 @@
               if (json.hasOwnProperty(key)) {
                 let val = json[key];
                 let dataspan = `
-                      <input type="radio" name="color" value=${val.label}>
+                      <input type="radio" name="color" value=${val.id}>
                       ${val.label}
                       <span class="checkmark"></span>
                     `;
                 const node = document.createElement("label");
                 node.classList.add("button");
-                node.classList.add(val.label);
+                node.classList.add(val.id);
                 document
                   .getElementById("container")
                   .appendChild(node).innerHTML = dataspan;
@@ -188,9 +188,13 @@
             for (let key in json) {
               if (json.hasOwnProperty(key)) {
                 const val = json[key];
+                const currColorLabel = colors.find(
+                  (item) => item.id === val.color
+                );
+
                 if (val.color) {
                   const dataspan = `
-                      <span>${val.color}</span>:
+                      <span>${currColorLabel.label}</span>:
                       <span>${val.count}</span>
                     `;
                   const node = document.createElement("div");
@@ -215,10 +219,21 @@
 
       function handleSubmit(EO) {
         EO = EO || window.event;
+        EO.preventDefault();
         const formTag = document.forms.options;
         const color = formTag.elements.color.value;
 
-        handleGetStat();
+        const params = new URLSearchParams();
+        params.append("color", color);
+
+        fetch("/vote", { method: "POST", body: params })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error: ${response.status}`);
+            }
+            handleGetStat();
+          })
+          .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
 
       handleGetVariants();

@@ -11,11 +11,11 @@ const port = 7980;
 const logFN = path.join(__dirname, "_server.log");
 const logVotesFN = path.join(__dirname, "_data.log");
 const colors = [
-  { label: "green" },
-  { label: "yellow" },
-  { label: "blue" },
-  { label: "red" },
-  { label: "pink" },
+  { label: "Green", id: "green" },
+  { label: "Yellow", id: "yellow" },
+  { label: "Blue", id: "blue" },
+  { label: "Red", id: "red" },
+  { label: "Pink", id: "pink" },
 ];
 
 function logLineSync(logFilePath, logLine) {
