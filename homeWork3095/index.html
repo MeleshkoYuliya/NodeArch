@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .button {
+      border: none;
+      border-radius: 4px;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 6px 18px;
+      width: 200px;
+      cursor: pointer;
+      text-align: center;
+      position: relative;
+      background-color: #fff;
+      box-sizing: border-box;
+    }
+    .green {
+      border: solid 2px green;
+    }
+    .yellow {
+      border: solid 2px yellow;
+    }
+    .red {
+      border: solid 2px red;
+    }
+    .pink {
+      border: solid 2px pink;
+    }
+    .blue {
+      border: solid 2px blue;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+    .button input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+
+    .checkmark {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      margin: auto 0px;
+      left: 8px;
+      height: 20px;
+      width: 20px;
+      background-color: #eee;
+      border-radius: 50%;
+    }
+
+    .button:hover input ~ .checkmark {
+      background-color: #ccc;
+    }
+
+    .green input:checked ~ .checkmark {
+      background-color: green;
+    }
+    .yellow input:checked ~ .checkmark {
+      background-color: yellow;
+    }
+    .red input:checked ~ .checkmark {
+      background-color: red;
+    }
+    .blue input:checked ~ .checkmark {
+      background-color: blue;
+    }
+    .pink input:checked ~ .checkmark {
+      background-color: pink;
+    }
+
+    .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+    }
+
+    .button input:checked ~ .checkmark:after {
+      display: block;
+    }
+
+    .button .checkmark:after {
+      top: 6px;
+      left: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: white;
+    }
+    .sendButton {
+      border: solid 1px black;
+      border-radius: 4px;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 6px 18px;
+      width: 200px;
+      box-sizing: border-box;
+      cursor: pointer;
+      text-align: center;
+      position: relative;
+      background-color: #fff;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <form class="container" method=POST action="http://localhost:7980/vote" target=example>
+    <h1>Choose your favourite color</h1>
+    <label class="green button">
+      <input type="radio" name="color" value="green">
+      Green
+      <span class="checkmark"></span>
+    </label>
+    <label class="button yellow">
+      <input type="radio" name="color" value="yellow">
+      Yellow
+      <span class="checkmark"></span>
+    </label>
+    <label class="button red">
+      <input type="radio" name="color" value="red">
+      Red
+      <span class="checkmark"></span>
+    </label>
+    <label class="button pink">
+      <input type="radio" name="color" value="pink">
+      Pink
+      <span class="checkmark"></span>
+    </label>
+    <label class="button blue">
+      <input type="radio" name="color" value="blue">
+      Blue
+      <span class="checkmark"></span>
+    </label>
+    <input type=submit value="Send" class="sendButton">
+  </form>
+</body>
+</html>
