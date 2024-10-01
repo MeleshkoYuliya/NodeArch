@@ -45,6 +45,14 @@ const handleValidate = ({ age, name }) => {
 };
 
 const getForm = (data) => {
+  data = data || {
+    name: '',
+    age: '',
+    errors: {
+      name: '',
+      age: '',
+    }
+  }
   return `
     <html>
       <body>
