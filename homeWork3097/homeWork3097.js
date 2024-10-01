@@ -44,57 +44,53 @@ const handleValidate = ({ age, name }) => {
   return errors;
 };
 
-const form = `<form
-      style="display:flex; flex-direction:column; width: 400px; gap: 24px"
-      name='anketa'
-      novalidate
-      action="/form"
-      method="POST"
-    >
-      <h1>Pesonal Info</h1>
-      <input name="name" placeholder="Enter name" style="width: 400px; padding: 12px; font-size:20px; box-sizing: border-box">
-      <input name="age" placeholder="Enter age" style="width: 400px; padding: 12px; font-size:20px; box-sizing: border-box">
-      <input type="submit" value="Send" style="height: 44px; width: 400px; font-size:20px; background-color: #fff" />
-    </form>`;
+const getForm = (data) => {
+  return `
+    <html>
+      <body>
+        <form
+          style="display:flex; flex-direction:column; width: 400px; gap: 24px"
+          name='anketa'
+          novalidate
+          action="/form"
+          method="POST"
+        >
+          <h1>Pesonal Info</h1>
+          <div>
+            <input
+              name="name"
+              placeholder="Enter name"
+              value="${data.name}"
+              style="width: 400px; padding: 12px; font-size:20px; box-sizing: border-box"
+            >
+            <div style="color:red; font-size:14px">${data.errors.name}</div>
+          </div>
+          <div>
+            <input
+              name="age"
+              placeholder="Enter age"
+              value="${data.age}"
+              style="width: 400px; padding: 12px; font-size:20px; box-sizing: border-box"
+            >
+            <div style="color:red; font-size:14px">${data.errors.age}</div>
+          </div>
+          <input type="submit" value="Send" style="height: 44px; width: 400px; font-size:20px; background-color: #fff" />
+        </form>
+      </body>
+    </html>
+  `;
+};
 
 webserver.post("/form", (req, res) => {
   const errors = handleValidate({ age: req.body.age, name: req.body.name });
 
   if (errors.age || errors.name) {
-    res.send(`
-      <html>
-        <body>
-          <form
-            style="display:flex; flex-direction:column; width: 400px; gap: 24px"
-            name='anketa'
-            novalidate
-            action="/form"
-            method="POST"
-          >
-            <h1>Pesonal Info</h1>
-            <div>
-              <input
-                name="name"
-                placeholder="Enter name"
-                value="${req.body.name}"
-                style="width: 400px; padding: 12px; font-size:20px; box-sizing: border-box"
-              >
-              <div style="color:red; font-size:14px">${errors.name}</div>
-            </div>
-            <div>
-              <input
-                name="age"
-                placeholder="Enter age"
-                value="${req.body.age}"
-                style="width: 400px; padding: 12px; font-size:20px; box-sizing: border-box"
-              >
-              <div style="color:red; font-size:14px">${errors.age}</div>
-            </div>
-            <input type="submit" value="Send" style="height: 44px; width: 400px; font-size:20px; background-color: #fff" />
-          </form>
-        </body>
-      </html>
-  `);
+    const data = {
+      name: req.body.name,
+      age: req.body.age,
+      errors,
+    };
+    res.send(getForm(data));
   } else {
     res.send(`
       <html>
@@ -107,17 +103,7 @@ webserver.post("/form", (req, res) => {
 });
 
 webserver.get("/form", (req, res) => {
-  res.status(200).send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Anketa</title>
-      </head>
-      <body>
-        <div id="app">${form}</div>
-      </body>
-    </html>
-    `);
+  res.status(200).send(getForm());
 });
 
 webserver.listen(port, () => {
