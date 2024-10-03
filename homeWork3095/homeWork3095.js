@@ -33,28 +33,14 @@ function logLineSync(logFilePath, logLine) {
 function logVotesSync(logFilePath, color) {
   const logFd = fs.openSync(logFilePath, "a+");
   const data = fs.readFileSync(logFilePath, { encoding: "utf8", flag: "r" });
-  const colorsArr = data.split("|");
 
-  let newData = "";
+  let newData = data ? JSON.parse(data) : {};
+  const savedCount = newData[color] || 0
+  newData = {...newData, [color]: savedCount + 1}
 
-  const isExitedColor = data.includes(color);
-
-  if (isExitedColor) {
-    const newArr = colorsArr.map((item) => {
-      if (item.includes(color)) {
-        const [colorName, count] = item.split("=");
-        const newItem = `${colorName}=${Number(count) + 1}`;
-        return newItem;
-      }
-      return item;
-    });
-    newData = newArr.join("|");
-  } else {
-    newData = data ? `${data}|${color}=1` : `${color}=1`;
-  }
   fs.closeSync(logFd);
   const logFdToWrite = fs.openSync(logFilePath, "w+");
-  fs.writeFileSync(logFdToWrite, newData, { encoding: "utf8", flag: "w" });
+  fs.writeFileSync(logFdToWrite, JSON.stringify(newData), { encoding: "utf8", flag: "w" });
   fs.closeSync(logFdToWrite);
 }
 
@@ -74,13 +60,9 @@ webserver.get("/voting", (req, res) => {
 webserver.post("/stat", (req, res) => {
   const logFd = fs.openSync(logVotesFN, "a+");
   const data = fs.readFileSync(logVotesFN, { encoding: "utf8", flag: "r" });
-  const colorsArr = data.split("|");
-  const dataJson = colorsArr.map((item) => {
-    const [colorName, count] = item.split("=");
-    return { color: colorName, count };
-  });
+  const newData = data ? JSON.parse(data) : {};
   fs.closeSync(logFd);
-  res.status(200).send(dataJson);
+  res.status(200).send(JSON.stringify(newData));
 });
 
 webserver.listen(port, () => {

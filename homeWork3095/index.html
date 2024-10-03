@@ -185,30 +185,23 @@
             return response.json();
           })
           .then((json) => {
-            for (let key in json) {
-              if (json.hasOwnProperty(key)) {
-                const val = json[key];
-                const currColorLabel = colors.find(
-                  (item) => item.id === val.color
-                );
-
-                if (val.color) {
-                  const dataspan = `
-                      <span>${currColorLabel.label}</span>:
-                      <span>${val.count}</span>
+            const colorsArr = Object.entries(json);
+            for (let key in colorsArr) {
+              const [color, count] = colorsArr[key];
+              const dataspan = `
+                      <span>${color}</span>:
+                      <span>${count}</span>
                     `;
-                  const node = document.createElement("div");
-                  node.classList.add("stat");
-                  node.setAttribute("id", val.color);
+              const node = document.createElement("div");
+              node.classList.add("stat");
+              node.setAttribute("id", color);
 
-                  const oldEl = document.getElementById(val.color);
-                  if (oldEl) {
-                    document.getElementById("stat").removeChild(oldEl);
-                  }
-                  document.getElementById("stat").appendChild(node).innerHTML =
-                    dataspan;
-                }
+              const oldEl = document.getElementById(color);
+              if (oldEl) {
+                document.getElementById("stat").removeChild(oldEl);
               }
+              document.getElementById("stat").appendChild(node).innerHTML =
+                dataspan;
             }
           })
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
