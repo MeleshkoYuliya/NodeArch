@@ -35,12 +35,15 @@ function logVotesSync(logFilePath, color) {
   const data = fs.readFileSync(logFilePath, { encoding: "utf8", flag: "r" });
 
   let newData = data ? JSON.parse(data) : {};
-  const savedCount = newData[color] || 0
-  newData = {...newData, [color]: savedCount + 1}
+  const savedCount = newData[color] || 0;
+  newData = { ...newData, [color]: savedCount + 1 };
 
   fs.closeSync(logFd);
   const logFdToWrite = fs.openSync(logFilePath, "w+");
-  fs.writeFileSync(logFdToWrite, JSON.stringify(newData), { encoding: "utf8", flag: "w" });
+  fs.writeFileSync(logFdToWrite, JSON.stringify(newData), {
+    encoding: "utf8",
+    flag: "w",
+  });
   fs.closeSync(logFdToWrite);
 }
 
@@ -60,9 +63,58 @@ webserver.get("/voting", (req, res) => {
 webserver.post("/stat", (req, res) => {
   const logFd = fs.openSync(logVotesFN, "a+");
   const data = fs.readFileSync(logVotesFN, { encoding: "utf8", flag: "r" });
-  const newData = data ? JSON.parse(data) : {};
   fs.closeSync(logFd);
-  res.status(200).send(JSON.stringify(newData));
+  const newData = data ? JSON.parse(data) : {};
+
+  // т.к. к этому сервису идёт AJAX-запрос со страниц с другим происхождением (origin), надо явно это разрешить
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
+  const clientAccept = req.headers.accept;
+  if (clientAccept === "application/json") {
+    res.setHeader("Content-Type", "application/json");
+    res.send(newData);
+    return;
+  }
+
+  if (clientAccept === "application/xml") {
+    res.setHeader("Content-Type", "application/xml");
+    const colorsArr = Object.entries(newData);
+
+    const dataXML = `
+      <div>
+        ${colorsArr.map(
+          ([color, count]) => `
+            <div>
+              <span>${color}</span>:
+              <span>${count}</span>
+            </div>
+          `
+        )}
+      </div>
+    `;
+    res.send(dataXML);
+    return;
+  }
+
+  if (clientAccept === "text/html") {
+    res.setHeader("Content-Type", "text/html");
+    const colorsArr = Object.entries(newData);
+
+    const counts = colorsArr.map(([color, count]) => (
+      `<span>${color}</span>:<span>${count}</span>`
+    ))
+
+    const dataHTML = `
+      <div>
+        ${counts}
+      </div>
+    `;
+    res.send(dataHTML);
+    return;
+  }
+
+  res.setHeader("Content-Type", "text/plain");
+  res.send(newData);
 });
 
 webserver.listen(port, () => {

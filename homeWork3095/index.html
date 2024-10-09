@@ -5,6 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
+      .buttonsContainer {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 40px;
+        border-top: solid 1px rgba(154, 152, 152, 0.7);
+        padding-top: 20px;
+      }
+
+      .buttonsContainer > button {
+        background-color: #fff;
+        border: solid 1px rgba(154, 152, 152, 0.7);
+        border-radius: 8px;
+        padding: 8px 24px;
+        cursor: pointer;
+      }
+
+      .buttonsContainer > button:hover {
+        border: solid 1px rgba(154, 152, 152, 1);
+        color: rgba(154, 152, 152, 1);
+        transition: all 0.1s ease-out;
+      }
+
       .mainContainer {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -135,6 +158,12 @@
         <h1>Statistic</h1>
         <div id="stat" class="container"></div>
       </div>
+      <div class="buttonsContainer">
+        <h2>Get Statistic in formats:</h2>
+        <button onclick="call_for_xml()">XML</button>
+        <button onclick="call_for_html()">HTML</button>
+        <button onclick="call_for_json()">JSON</button>
+      </div>
     </div>
 
     <script async>
@@ -227,6 +256,107 @@
             handleGetStat();
           })
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
+      }
+
+      async function call_for_json() {
+        const fetchOptions = {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+        };
+        const response = await fetch("/stat", fetchOptions);
+        const data = await response.json();
+        console.log("получены данные в формате json", data);
+      }
+
+      async function call_for_xml() {
+        const fetchOptions = {
+          method: "POST",
+          headers: {
+            Accept: "application/xml",
+          },
+        };
+        const response = await fetch("/stat", fetchOptions);
+        const xmlStr = await response.text();
+        const data = parseXml(xmlStr);
+        console.log("получены данные в формате xml", data);
+      }
+
+      async function call_for_html() {
+        const fetchOptions = {
+          method: "POST",
+          headers: {
+            Accept: "text/html",
+          },
+        };
+        const response = await fetch("/stat", fetchOptions);
+        console.log("получены данные в формате html", response);
+      }
+
+      function parseXml(xml, arrayTags) {
+        var dom = null;
+        if (window.DOMParser) {
+          dom = new DOMParser().parseFromString(xml, "text/xml");
+        } else if (window.ActiveXObject) {
+          dom = new ActiveXObject("Microsoft.XMLDOM");
+          dom.async = false;
+          if (!dom.loadXML(xml)) {
+            throw dom.parseError.reason + " " + dom.parseError.srcText;
+          }
+        } else {
+          throw "cannot parse xml string!";
+        }
+
+        function isArray(o) {
+          return Object.prototype.toString.apply(o) === "[object Array]";
+        }
+
+        function parseNode(xmlNode, result) {
+          if (xmlNode.nodeName == "#text") {
+            var v = xmlNode.nodeValue;
+            if (v.trim()) {
+              result["#text"] = v;
+            }
+            return;
+          }
+
+          var jsonNode = {};
+          var existing = result[xmlNode.nodeName];
+          if (existing) {
+            if (!isArray(existing)) {
+              result[xmlNode.nodeName] = [existing, jsonNode];
+            } else {
+              result[xmlNode.nodeName].push(jsonNode);
+            }
+          } else {
+            if (arrayTags && arrayTags.indexOf(xmlNode.nodeName) != -1) {
+              result[xmlNode.nodeName] = [jsonNode];
+            } else {
+              result[xmlNode.nodeName] = jsonNode;
+            }
+          }
+
+          if (xmlNode.attributes) {
+            var length = xmlNode.attributes.length;
+            for (var i = 0; i < length; i++) {
+              var attribute = xmlNode.attributes[i];
+              jsonNode[attribute.nodeName] = attribute.nodeValue;
+            }
+          }
+
+          var length = xmlNode.childNodes.length;
+          for (var i = 0; i < length; i++) {
+            parseNode(xmlNode.childNodes[i], jsonNode);
+          }
+        }
+
+        var result = {};
+        for (let i = 0; i < dom.childNodes.length; i++) {
+          parseNode(dom.childNodes[i], result);
+        }
+
+        return result;
       }
 
       handleGetVariants();
