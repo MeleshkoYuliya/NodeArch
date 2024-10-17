@@ -258,6 +258,13 @@
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
 
+      function downloadResult(blobData, fileName) {
+        const fakebtn = document.createElement("a");
+        fakebtn.href = window.URL.createObjectURL(blobData);
+        fakebtn.download = fileName;
+        fakebtn.click();
+      }
+
       async function call_for_json() {
         const fetchOptions = {
           method: "POST",
@@ -266,8 +273,12 @@
           },
         };
         const response = await fetch("/stat", fetchOptions);
-        const data = await response.json();
-        console.log("получены данные в формате json", data);
+
+        const dataBlob = await response.blob();
+        const blob = new Blob([dataBlob], {
+          type: "application/json;charset=utf-8",
+        });
+        downloadResult(dataBlob, "result.json");
       }
 
       async function call_for_xml() {
@@ -278,6 +289,13 @@
           },
         };
         const response = await fetch("/stat", fetchOptions);
+
+        const dataBlob = await response.blob();
+        const blob = new Blob([dataBlob], {
+          type: "application/xml;charset=utf-8",
+        });
+        downloadResult(blob, "result.xml");
+
         const xmlStr = await response.text();
         const data = parseXml(xmlStr);
         console.log("получены данные в формате xml", data);
@@ -291,6 +309,9 @@
           },
         };
         const response = await fetch("/stat", fetchOptions);
+        const data = await response.blob();
+        const blob = new Blob([data], { type: "text/html;charset=utf-8" });
+        downloadResult(blob, "result.html");
         console.log("получены данные в формате html", response);
       }
 
