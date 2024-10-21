@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <link rel="stylesheet" type="text/css" href="index.css" />
-    <style></style>
   </head>
   <body>
     <div class="mainContainer">
@@ -27,8 +26,16 @@
             <label class="label"> URL </label>
           </div>
         </div>
-        <button class="textButton">Добавить параметр</button>
-        <button class="textButton">Добавить заголовок</button>
+        <div id="parametrs" class="parametrs"></div>
+        <button class="textButton" type="button" onclick="handleAddParamsRow()">
+          Добавить параметр
+        </button>
+        <hr class="divider" />
+        <div id="headers" class="parametrs"></div>
+        <button class="textButton" onclick="handleAddHeaderRow()" type="button">
+          Добавить заголовок
+        </button>
+        <hr class="divider" />
         <div class="buttonsContainer">
           <button class="actionButton">Сохранить запрос</button>
           <button class="actionButton">Отправить запрос</button>
@@ -38,221 +45,107 @@
     </div>
 
     <script async>
-      const colors = [
-        { label: "Green", id: "green" },
-        { label: "Yellow", id: "yellow" },
-        { label: "Blue", id: "blue" },
-        { label: "Red", id: "red" },
-        { label: "Pink", id: "pink" },
+      let parametrs = [];
+      let headers = [];
+
+      const headersOptions = [
+        "Content-type",
+        "Origin",
+        "Accept",
+        "Cache-Control",
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Headers",
       ];
 
-      function handleGetVariants() {
-        fetch("/variants")
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`HTTP error: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then((json) => {
-            for (let key in json) {
-              if (json.hasOwnProperty(key)) {
-                let val = json[key];
-                let dataspan = `
-                      <input type="radio" name="color" value=${val.id}>
-                      ${val.label}
-                      <span class="checkmark"></span>
-                    `;
-                const node = document.createElement("label");
-                node.classList.add("button");
-                node.classList.add(val.id);
-                document
-                  .getElementById("container")
-                  .appendChild(node).innerHTML = dataspan;
-              }
-            }
-          })
-          .catch((err) => console.error(`Fetch problem: ${err.message}`));
-      }
+      function handleAddParamsRow() {
+        parametrs.push({ id: parametrs.length + 1 });
+        const container = document.getElementById("parametrs");
 
-      function handleGetStat() {
-        fetch("/stat", { method: "POST" })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`HTTP error: ${response.status}`);
-            }
-
-            return response.json();
-          })
-          .then((json) => {
-            const colorsArr = Object.entries(json);
-            for (let key in colorsArr) {
-              const [color, count] = colorsArr[key];
-              const dataspan = `
-                      <span>${color}</span>:
-                      <span>${count}</span>
-                    `;
-              const node = document.createElement("div");
-              node.classList.add("stat");
-              node.setAttribute("id", color);
-
-              const oldEl = document.getElementById(color);
-              if (oldEl) {
-                document.getElementById("stat").removeChild(oldEl);
-              }
-              document.getElementById("stat").appendChild(node).innerHTML =
-                dataspan;
-            }
-          })
-          .catch((err) => console.error(`Fetch problem: ${err.message}`));
-      }
-
-      const formTag = document.forms.options;
-      formTag.addEventListener("submit", handleSubmit, false);
-
-      function handleSubmit(EO) {
-        EO = EO || window.event;
-        EO.preventDefault();
-        const formTag = document.forms.options;
-        const color = formTag.elements.color.value;
-
-        const params = new URLSearchParams();
-        params.append("color", color);
-
-        fetch("/vote", { method: "POST", body: params })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`HTTP error: ${response.status}`);
-            }
-            handleGetStat();
-          })
-          .catch((err) => console.error(`Fetch problem: ${err.message}`));
-      }
-
-      function downloadResult(blobData, fileName) {
-        const fakebtn = document.createElement("a");
-        fakebtn.href = window.URL.createObjectURL(blobData);
-        fakebtn.download = fileName;
-        fakebtn.click();
-      }
-
-      async function call_for_json() {
-        const fetchOptions = {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-          },
-        };
-        const response = await fetch("/stat", fetchOptions);
-
-        const dataBlob = await response.blob();
-        const blob = new Blob([dataBlob], {
-          type: "application/json;charset=utf-8",
-        });
-        downloadResult(dataBlob, "result.json");
-      }
-
-      async function call_for_xml() {
-        const fetchOptions = {
-          method: "POST",
-          headers: {
-            Accept: "application/xml",
-          },
-        };
-        const response = await fetch("/stat", fetchOptions);
-
-        const dataBlob = await response.blob();
-        const blob = new Blob([dataBlob], {
-          type: "application/xml;charset=utf-8",
-        });
-        downloadResult(blob, "result.xml");
-
-        const xmlStr = await response.text();
-        const data = parseXml(xmlStr);
-        console.log("получены данные в формате xml", data);
-      }
-
-      async function call_for_html() {
-        const fetchOptions = {
-          method: "POST",
-          headers: {
-            Accept: "text/html",
-          },
-        };
-        const response = await fetch("/stat", fetchOptions);
-        const data = await response.blob();
-        const blob = new Blob([data], { type: "text/html;charset=utf-8" });
-        downloadResult(blob, "result.html");
-        console.log("получены данные в формате html", response);
-      }
-
-      function parseXml(xml, arrayTags) {
-        var dom = null;
-        if (window.DOMParser) {
-          dom = new DOMParser().parseFromString(xml, "text/xml");
-        } else if (window.ActiveXObject) {
-          dom = new ActiveXObject("Microsoft.XMLDOM");
-          dom.async = false;
-          if (!dom.loadXML(xml)) {
-            throw dom.parseError.reason + " " + dom.parseError.srcText;
-          }
-        } else {
-          throw "cannot parse xml string!";
+        if (parametrs.length === 1) {
+          const title = document.createElement("h3");
+          title.setAttribute("id", "parametrsTitle");
+          container.appendChild(title).innerHTML = "Параметры";
         }
 
-        function isArray(o) {
-          return Object.prototype.toString.apply(o) === "[object Array]";
+        for (let key in parametrs) {
+          const val = parametrs[key];
+          const datarow = `
+            <input class="input" name="paramName" />
+            <input class="input" name="paramValue" />
+            <button class="textButton" type="button" onclick="handleDeleteParamRow(${val.id})">
+              Удалить
+            </button>
+          `;
+
+          const node = document.createElement("div");
+          node.setAttribute("id", `parametr-${val.id}`);
+          node.classList.add("paramRow");
+          const oldEl = document.getElementById(`parametr-${val.id}`);
+          if (oldEl) {
+            container.removeChild(oldEl);
+          }
+          container.appendChild(node).innerHTML = datarow;
         }
-
-        function parseNode(xmlNode, result) {
-          if (xmlNode.nodeName == "#text") {
-            var v = xmlNode.nodeValue;
-            if (v.trim()) {
-              result["#text"] = v;
-            }
-            return;
-          }
-
-          var jsonNode = {};
-          var existing = result[xmlNode.nodeName];
-          if (existing) {
-            if (!isArray(existing)) {
-              result[xmlNode.nodeName] = [existing, jsonNode];
-            } else {
-              result[xmlNode.nodeName].push(jsonNode);
-            }
-          } else {
-            if (arrayTags && arrayTags.indexOf(xmlNode.nodeName) != -1) {
-              result[xmlNode.nodeName] = [jsonNode];
-            } else {
-              result[xmlNode.nodeName] = jsonNode;
-            }
-          }
-
-          if (xmlNode.attributes) {
-            var length = xmlNode.attributes.length;
-            for (var i = 0; i < length; i++) {
-              var attribute = xmlNode.attributes[i];
-              jsonNode[attribute.nodeName] = attribute.nodeValue;
-            }
-          }
-
-          var length = xmlNode.childNodes.length;
-          for (var i = 0; i < length; i++) {
-            parseNode(xmlNode.childNodes[i], jsonNode);
-          }
-        }
-
-        var result = {};
-        for (let i = 0; i < dom.childNodes.length; i++) {
-          parseNode(dom.childNodes[i], result);
-        }
-
-        return result;
       }
 
-      handleGetVariants();
-      handleGetStat();
+      function handleDeleteParamRow(id) {
+        const container = document.getElementById("parametrs");
+        const element = document.getElementById(`parametr-${id}`);
+        container.removeChild(element);
+        parametrs = parametrs.filter((item) => item.id !== id);
+        if (!parametrs.length) {
+          const title = document.getElementById("parametrsTitle");
+          container.removeChild(title);
+        }
+      }
+
+      function handleAddHeaderRow() {
+        headers.push({ id: headers.length + 1 });
+        const container = document.getElementById("headers");
+
+        if (headers.length === 1) {
+          const title = document.createElement("h3");
+          title.setAttribute("id", "headersTitle");
+          container.appendChild(title).innerHTML = "Заголовки";
+        }
+
+        for (let key in headers) {
+          const val = headers[key];
+          const datarow = `
+            <select class="input" name="headerName">
+              ${headersOptions.map(
+                (item) => `<option value="${item}">${item}</option>`
+              )}
+            </select>
+            <input class="input" name="headerValue" />
+            <button class="textButton" type="button" onclick="handleDeleteHeaderRow(${
+              val.id
+            })">
+              Удалить
+            </button>
+          `;
+
+          const node = document.createElement("div");
+          node.setAttribute("id", `header-${val.id}`);
+          node.classList.add("paramRow");
+          const oldEl = document.getElementById(`header-${val.id}`);
+          if (oldEl) {
+            container.removeChild(oldEl);
+          }
+          container.appendChild(node).innerHTML = datarow;
+        }
+      }
+
+      function handleDeleteHeaderRow(id) {
+        const container = document.getElementById("headers");
+        const element = document.getElementById(`header-${id}`);
+        container.removeChild(element);
+        headers = headers.filter((item) => item.id !== id);
+        if (!headers.length) {
+          const title = document.getElementById("headersTitle");
+          container.removeChild(title);
+        }
+      }
     </script>
   </body>
 </html>

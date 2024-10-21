@@ -87,6 +87,8 @@
   cursor: pointer;
   font-size: 16px;
   font-weight: 500;
+  width: fit-content;
+  margin: 0px auto;
 }
 
 .textButton:hover {
@@ -95,11 +97,33 @@
 }
 
 select {
-  appearance: none;
   width: 100%;
   padding: 0px 8px;
   background-color: #fff;
   border-radius: 8px;
   color: #000;
   cursor: pointer;
+}
+
+.paramRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+}
+
+.parametrs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+h3 {
+  margin: 0px;
+}
+
+.divider {
+  width: 100%;
+  background-color: rgb(198, 197, 197);
+  border: none;
+  height: 1px;
 }
