@@ -1,0 +1,105 @@
+.mainContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.requestsContainer {
+  background-color: rgb(251, 243, 231);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-radius: 8px;
+  padding: 16px;
+  border: solid 1px rgb(255, 232, 196);
+}
+
+.formElement {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.input {
+  height: 40px;
+  border-radius: 8px;
+  border: solid 1px grey;
+  box-sizing: border-box;
+  padding: 8px;
+}
+
+.input:focus, .input:hover {
+  outline: none;
+  border: solid 1px brown;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 14px;
+  color: black;
+}
+
+.input:focus + .label, .input:hover + .label {
+  color: brown;
+}
+
+.buttonsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.actionButton {
+  background-color: brown;
+  border: solid 1px brown;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  height: 40px;
+  font-weight: 500;
+}
+
+.actionButton:hover {
+  background-color: white;
+  color: brown;
+  transition: all 0.2s ease-out;
+}
+
+.textButton {
+  color: brown;
+  border: none;
+  background-color: white;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.textButton:hover {
+  color: rgb(88, 22, 22);
+  transition: all 0.2s ease-out;
+}
+
+select {
+  appearance: none;
+  width: 100%;
+  padding: 0px 8px;
+  background-color: #fff;
+  border-radius: 8px;
+  color: #000;
+  cursor: pointer;
+}
