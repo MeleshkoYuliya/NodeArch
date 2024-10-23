@@ -42,7 +42,16 @@
   padding: 8px;
 }
 
-.input:focus, .input:hover {
+textarea {
+  border-radius: 8px;
+  border: solid 1px grey;
+  box-sizing: border-box;
+  padding: 8px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.input:focus, .input:hover, textarea:focus, textarea:hover {
   outline: none;
   border: solid 1px brown;
 }
@@ -126,4 +135,8 @@ h3 {
   background-color: rgb(198, 197, 197);
   border: none;
   height: 1px;
+}
+
+.hidden {
+  display: none;
 }
