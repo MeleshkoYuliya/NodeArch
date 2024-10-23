@@ -11,7 +11,7 @@
       <div class="requestsContainer">
         <div></div>
       </div>
-      <form class="formContainer" name="methodConfig" novalidate>
+      <form class="formContainer" method="POST" name="methodConfig" novalidate>
         <div class="formRow">
           <div class="formElement">
             <select
@@ -84,7 +84,7 @@
           title.setAttribute("id", "headersTitle");
           container.appendChild(title).innerHTML = "Тело Запроса";
           const textArea = document.createElement("textarea");
-          textArea.setAttribute("name", "body");
+          textArea.setAttribute("name", "bodyInput");
           textArea.setAttribute("id", "bodyInput");
           container.appendChild(textArea);
         }
@@ -94,11 +94,64 @@
         }
       }
 
-      function handleMethodSave() {
+      function handleGetFormData() {
+        const formTag = document.forms.methodConfig;
+        const bodyInput = formTag.elements.bodyInput;
+
+        const headerValues =
+          formTag.elements.headerValue && formTag.elements.headerValue.length
+            ? Array.from(formTag.elements.headerValue).map((item) => item.value)
+            : formTag.elements.headerValue
+            ? [formTag.elements.headerValue.value]
+            : [];
+
+        const headerNames =
+          formTag.elements.headerName &&
+          formTag.elements.headerName.length &&
+          !formTag.elements.headerName?.value
+            ? Array.from(formTag.elements.headerName).map((item) => item.value)
+            : formTag.elements.headerName
+            ? [formTag.elements.headerName.value]
+            : [];
+
+        const paramValues =
+          formTag.elements.paramValue && formTag.elements.paramValue.length
+            ? Array.from(formTag.elements.paramValue).map((item) => item.value)
+            : formTag.elements.paramValue
+            ? [formTag.elements.paramValue.value]
+            : [];
+
+        const paramNames =
+          formTag.elements.paramName && formTag.elements.paramName.length
+            ? Array.from(formTag.elements.paramName).map((item) => item.value)
+            : formTag.elements.paramName
+            ? [formTag.elements.paramName.value]
+            : [];
+
+        const headersData = headerNames.reduce((acc, item, index) => {
+          return { ...acc, [item]: headerValues[index] };
+        }, {});
+
+        const paramsData = paramNames.reduce((acc, item, index) => {
+          return { ...acc, [item]: paramValues[index] };
+        }, {});
+
+        const values = {
+          url: formTag.elements.url.value,
+          method: formTag.elements.method.value,
+          body: bodyInput ? bodyInput.value : "",
+          headers: headersData,
+          params: paramsData,
+        };
+
+        return values;
+      }
+
+      function handleMethodSave(EO) {
         EO = EO || window.event;
-        EO.preventDefault();
-        const form = document.forms.methodConfig;
-        console.log(form.elements);
+
+        const formValues = handleGetFormData();
+        console.log(formValues)
       }
 
       function handleAddParamsRow() {
@@ -158,7 +211,7 @@
         }
 
         const datarow = `
-          <select class="input" name="headerName">
+          <select class="input" name="headerName" id="headerName">
             ${headersOptions.map(
               (item) => `<option value="${item}">${item}</option>`
             )}
