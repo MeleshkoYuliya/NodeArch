@@ -19,11 +19,8 @@ const colors = [
 
 function logLineSync(logFilePath, logLine) {
   const logDT = new Date();
-  let time = logDT.toLocaleDateString() + " " + logDT.toLocaleTimeString();
-  let fullLogLine = time + " " + logLine;
-
-  console.log(fullLogLine);
-
+  const time = logDT.toLocaleDateString() + " " + logDT.toLocaleTimeString();
+  const fullLogLine = time + " " + logLine;
   const logFd = fs.openSync(logFilePath, "a+");
   fs.writeSync(logFd, fullLogLine + os.EOL);
   fs.closeSync(logFd);
@@ -38,7 +35,9 @@ function logVotesSync(logFilePath, color) {
   newData = { ...newData, [color]: savedCount + 1 };
 
   fs.closeSync(logFd);
+
   const logFdToWrite = fs.openSync(logFilePath, "w+");
+
   fs.writeFileSync(logFdToWrite, JSON.stringify(newData), {
     encoding: "utf8",
     flag: "w",
@@ -67,7 +66,6 @@ webserver.post("/stat", (req, res) => {
   fs.closeSync(logFd);
   const newData = data ? JSON.parse(data) : {};
 
-  // т.к. к этому сервису идёт AJAX-запрос со страниц с другим происхождением (origin), надо явно это разрешить
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   const clientAccept = req.headers.accept;
