@@ -7,14 +7,19 @@
     <link rel="stylesheet" type="text/css" href="index.css" />
   </head>
   <body>
-    <div class="mainContainer">
+    <div class="mainContainer" id="mainContainer">
       <div class="requestsContainer">
         <div></div>
       </div>
-      <form class="formContainer" name="options" novalidate>
+      <form class="formContainer" name="methodConfig" novalidate>
         <div class="formRow">
           <div class="formElement">
-            <select class="input" name="method" id="method">
+            <select
+              class="input"
+              name="method"
+              id="method"
+              onchange="onSelectChange(this)"
+            >
               <option value="GET">GET</option>
               <option value="POST">POST</option>
               <option value="PUT">PUT</option>
@@ -26,18 +31,30 @@
             <label class="label"> URL </label>
           </div>
         </div>
+        <div id="body"></div>
         <div id="parametrs" class="parametrs"></div>
         <button class="textButton" type="button" onclick="handleAddParamsRow()">
           Добавить параметр
         </button>
         <hr class="divider" />
         <div id="headers" class="parametrs"></div>
-        <button class="textButton" onclick="handleAddHeaderRow()" type="button">
+        <button
+          class="textButton"
+          id="addHeaderRowBtn"
+          onclick="handleAddHeaderRow()"
+          type="button"
+        >
           Добавить заголовок
         </button>
         <hr class="divider" />
         <div class="buttonsContainer">
-          <button class="actionButton">Сохранить запрос</button>
+          <button
+            class="actionButton"
+            onclick="handleMethodSave()"
+            type="button"
+          >
+            Сохранить запрос
+          </button>
           <button class="actionButton">Отправить запрос</button>
           <button class="actionButton">Очистить форму</button>
         </div>
@@ -57,35 +74,59 @@
         "Access-Control-Allow-Headers",
       ];
 
+      function onSelectChange(event) {
+        const value = event.value;
+        const bodyInput = document.getElementById("bodyInput");
+        const container = document.getElementById("body");
+
+        if ((value === "POST" || value === "PUT") && !bodyInput) {
+          const title = document.createElement("h3");
+          title.setAttribute("id", "headersTitle");
+          container.appendChild(title).innerHTML = "Тело Запроса";
+          const textArea = document.createElement("textarea");
+          textArea.setAttribute("name", "body");
+          textArea.setAttribute("id", "bodyInput");
+          container.appendChild(textArea);
+        }
+
+        if (value === "GET" && bodyInput) {
+          container.innerHTML = ``;
+        }
+      }
+
+      function handleMethodSave() {
+        EO = EO || window.event;
+        EO.preventDefault();
+        const form = document.forms.methodConfig;
+        console.log(form.elements);
+      }
+
       function handleAddParamsRow() {
-        parametrs.push({ id: parametrs.length + 1 });
+        const newId = parametrs.length
+          ? parametrs[parametrs.length - 1].id + 1
+          : 1;
+        parametrs.push({ id: newId });
         const container = document.getElementById("parametrs");
+
+        const datarow = `
+          <input class="input" name="paramName" />
+          <input class="input" name="paramValue" />
+          <button class="textButton" type="button" onclick="handleDeleteParamRow(${newId})">
+            Удалить
+          </button>
+        `;
 
         if (parametrs.length === 1) {
           const title = document.createElement("h3");
           title.setAttribute("id", "parametrsTitle");
           container.appendChild(title).innerHTML = "Параметры";
         }
-
-        for (let key in parametrs) {
-          const val = parametrs[key];
-          const datarow = `
-            <input class="input" name="paramName" />
-            <input class="input" name="paramValue" />
-            <button class="textButton" type="button" onclick="handleDeleteParamRow(${val.id})">
-              Удалить
-            </button>
-          `;
-
-          const node = document.createElement("div");
-          node.setAttribute("id", `parametr-${val.id}`);
-          node.classList.add("paramRow");
-          const oldEl = document.getElementById(`parametr-${val.id}`);
-          if (oldEl) {
-            container.removeChild(oldEl);
-          }
-          container.appendChild(node).innerHTML = datarow;
-        }
+        const content = container.innerHTML;
+        const node = document.createElement("div");
+        node.setAttribute("id", `parametr-${newId}`);
+        node.classList.add("paramRow");
+        node.innerHTML = datarow;
+        container.appendChild(node);
       }
 
       function handleDeleteParamRow(id) {
@@ -100,7 +141,14 @@
       }
 
       function handleAddHeaderRow() {
-        headers.push({ id: headers.length + 1 });
+        const newId = headers.length ? headers[headers.length - 1].id + 1 : 1;
+        headers = [...headers, { id: newId }];
+
+        if (headers.length === 6) {
+          const btn = document.getElementById("addHeaderRowBtn");
+          btn.classList.add("hidden");
+        }
+
         const container = document.getElementById("headers");
 
         if (headers.length === 1) {
@@ -109,42 +157,43 @@
           container.appendChild(title).innerHTML = "Заголовки";
         }
 
-        for (let key in headers) {
-          const val = headers[key];
-          const datarow = `
-            <select class="input" name="headerName">
-              ${headersOptions.map(
-                (item) => `<option value="${item}">${item}</option>`
-              )}
-            </select>
-            <input class="input" name="headerValue" />
-            <button class="textButton" type="button" onclick="handleDeleteHeaderRow(${
-              val.id
-            })">
-              Удалить
-            </button>
-          `;
+        const datarow = `
+          <select class="input" name="headerName">
+            ${headersOptions.map(
+              (item) => `<option value="${item}">${item}</option>`
+            )}
+          </select>
+          <input class="input" name="headerValue" />
+          <button class="textButton" type="button" onclick="handleDeleteHeaderRow(${newId})">
+            Удалить
+          </button>
+        `;
 
-          const node = document.createElement("div");
-          node.setAttribute("id", `header-${val.id}`);
-          node.classList.add("paramRow");
-          const oldEl = document.getElementById(`header-${val.id}`);
-          if (oldEl) {
-            container.removeChild(oldEl);
-          }
-          container.appendChild(node).innerHTML = datarow;
-        }
+        const content = container.innerHTML;
+        const node = document.createElement("div");
+        node.setAttribute("id", `header-${newId}`);
+        node.classList.add("paramRow");
+        node.innerHTML = datarow;
+        container.appendChild(node);
       }
 
       function handleDeleteHeaderRow(id) {
         const container = document.getElementById("headers");
-        const element = document.getElementById(`header-${id}`);
-        container.removeChild(element);
+
         headers = headers.filter((item) => item.id !== id);
+
+        if (headers.length === 5) {
+          const btn = document.getElementById("addHeaderRowBtn");
+          btn.classList.remove("hidden");
+        }
+
         if (!headers.length) {
           const title = document.getElementById("headersTitle");
           container.removeChild(title);
         }
+
+        const element = document.getElementById(`header-${id}`);
+        container.removeChild(element);
       }
     </script>
   </body>
