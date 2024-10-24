@@ -4,6 +4,7 @@ const path = require("path");
 const os = require("os");
 const webserver = express();
 const { v4: uuidv4 } = require("uuid");
+const fetch = require("isomorphic-fetch");
 
 webserver.use(express.json());
 
@@ -45,56 +46,38 @@ webserver.get("/requests", (req, res) => {
   res.status(200).send(newData);
 });
 
-// webserver.post("/stat", (req, res) => {
-//   res.setHeader("Access-Control-Allow-Origin", "*");
+webserver.post("/send-request", (req, res) => {
+  console.log(req.body);
+  res.setHeader("Access-Control-Allow-Origin", "*");
 
-//   const clientAccept = req.headers.accept;
-//   if (clientAccept === "application/json") {
-//     res.setHeader("Content-Type", "application/json");
-//     res.send(newData);
-//     return;
-//   }
+  const options = {
+    method: req.body.method,
+    headers: req.body.headers,
+  };
 
-//   if (clientAccept === "application/xml") {
-//     res.setHeader("Content-Type", "application/xml");
-//     const colorsArr = Object.entries(newData);
+  if (req.body.method !== "GET") {
+    options.body = req.body.body;
+  }
 
-//     const dataXML = `
-//       <div>
-//         ${colorsArr.map(
-//           ([color, count]) => `
-//             <div>
-//               <span>${color}</span>:
-//               <span>${count}</span>
-//             </div>
-//           `
-//         )}
-//       </div>
-//     `;
-//     res.send(dataXML);
-//     return;
-//   }
+  const params = req.body.params
+    ? new URLSearchParams(req.body.params).toString()
+    : "";
 
-//   if (clientAccept === "text/html") {
-//     res.setHeader("Content-Type", "text/html");
-//     const colorsArr = Object.entries(newData);
+  const url = params ? `${req.body.url}?${params}` : req.body.url;
 
-//     const counts = colorsArr.map(
-//       ([color, count]) => `<span>${color}</span>:<span>${count}</span>`
-//     );
-
-//     const dataHTML = `
-//       <div>
-//         ${counts}
-//       </div>
-//     `;
-//     res.send(dataHTML);
-//     return;
-//   }
-
-//   res.setHeader("Content-Type", "text/plain");
-//   res.send(newData);
-// });
+  fetch(url, { ...options })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      console.log(response.headers.get('content-type'))
+      return response.json();
+    })
+    .then((json) => {
+      res.send(json);
+    })
+    .catch((err) => console.error(`Fetch problem: ${err.message}`));
+});
 
 webserver.listen(port, () => {
   console.log("web server running on port " + port);
