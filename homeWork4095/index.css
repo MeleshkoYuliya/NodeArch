@@ -198,3 +198,10 @@ h3 {
 .selectedRequest {
   border-color: rgb(75,79,92);
 }
+
+.actionButton:disabled {
+  background-color: rgba(75,79,92,0.1);
+  cursor: not-allowed;
+  color: rgba(75,79,92,0.5);
+  border-color: rgba(75,79,92,0.1);
+}

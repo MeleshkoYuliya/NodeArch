@@ -25,7 +25,12 @@
             <label class="label" for="method"> Метод </label>
           </div>
           <div class="formElement">
-            <input class="input" name="url" id="url" />
+            <input
+              class="input"
+              name="url"
+              id="url"
+              onchange="onUrlChange(this)"
+            />
             <label class="label"> URL </label>
           </div>
         </div>
@@ -50,10 +55,14 @@
             class="actionButton"
             onclick="handleMethodSave()"
             type="button"
+            id="saveReqBtn"
+            disabled
           >
             Сохранить запрос
           </button>
-          <button class="actionButton">Отправить запрос</button>
+          <button class="actionButton" id="sendReqBtn" disabled>
+            Отправить запрос
+          </button>
           <button
             class="actionButton"
             onclick="handleClearForm()"
@@ -69,6 +78,7 @@
       let parametrs = [];
       let headers = [];
       let requests = [];
+      let selectedReq = null;
 
       const headersOptions = [
         "Content-type",
@@ -99,6 +109,17 @@
         }
 
         textArea.value = inputValue;
+      }
+
+      function onUrlChange(event) {
+        const value = event.value;
+        const saveReqBtn = document.getElementById("saveReqBtn");
+
+        if (value && !selectedReq) {
+          saveReqBtn.removeAttribute("disabled");
+        } else {
+          saveReqBtn.setAttribute("disabled", true);
+        }
       }
 
       function onSelectChange(event) {
@@ -361,18 +382,27 @@
         const methodSelect = document.getElementById("method");
         methodSelect.value = "GET";
 
+        const sendReqBtn = document.getElementById("sendReqBtn");
+        sendReqBtn.setAttribute("disabled", true);
+
         const oldSelectedRow = document.querySelector(".selectedRequest");
 
         if (oldSelectedRow) {
           oldSelectedRow.classList.remove("selectedRequest");
           if (oldSelectedRow.id === id) {
+            selectedReq = null;
             return;
           }
         }
+
+        sendReqBtn.removeAttribute("disabled");
+        saveReqBtn.setAttribute("disabled", true);
+
         const selectedRow = document.getElementById(id);
         selectedRow.classList.add("selectedRequest");
 
         const selectedData = requests.find((item) => item.id === id);
+        selectedReq = selectedData;
 
         urlInput.value = selectedData.url;
         methodSelect.value = selectedData.method;
@@ -425,6 +455,11 @@
         if (oldSelectedRow) {
           oldSelectedRow.classList.remove("selectedRequest");
         }
+
+        const sendReqBtn = document.getElementById("sendReqBtn");
+        sendReqBtn.setAttribute("disabled", true);
+
+        selectedReq = null;
       }
 
       handleGetRequests();
