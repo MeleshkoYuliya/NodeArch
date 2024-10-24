@@ -8,9 +8,7 @@
   </head>
   <body>
     <div class="mainContainer" id="mainContainer">
-      <div class="requestsContainer">
-        <div></div>
-      </div>
+      <div class="requestsContainer" id="requestsContainer"></div>
       <form class="formContainer" method="POST" name="methodConfig" novalidate>
         <div class="formRow">
           <div class="formElement">
@@ -149,9 +147,20 @@
 
       function handleMethodSave(EO) {
         EO = EO || window.event;
-
         const formValues = handleGetFormData();
-        console.log(formValues)
+
+        fetch("/save-config", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formValues),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error: ${response.status}`);
+            }
+            handleGetRequests()
+          })
+          .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
 
       function handleAddParamsRow() {
@@ -248,6 +257,45 @@
         const element = document.getElementById(`header-${id}`);
         container.removeChild(element);
       }
+
+      function handleGetRequests() {
+        fetch("/requests")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((json) => {
+            const requestsContainer =
+              document.getElementById("requestsContainer");
+
+            if (!json.length) {
+              const dataspan = `
+                <div class="emptyState">Нет сохраненных запросов</div>
+              `;
+              const node = document.createElement("div");
+              requestsContainer.appendChild(node).innerHTML = dataspan;
+              return;
+            }
+
+            for (let key in json) {
+              const item = json[key];
+              const dataspan = `
+                <div class="methodName method-${item.method}">${item.method}</div>
+                <div>${item.url}</div>
+              `;
+              const node = document.createElement("div");
+              node.classList.add("reqContainer");
+              node.classList.add(`reqContainer-${item.method}`);
+
+              requestsContainer.appendChild(node).innerHTML = dataspan;
+            }
+          })
+          .catch((err) => console.error(`Fetch problem: ${err.message}`));
+      }
+
+      handleGetRequests();
     </script>
   </body>
 </html>

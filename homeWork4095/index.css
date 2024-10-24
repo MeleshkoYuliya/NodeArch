@@ -5,7 +5,7 @@
 }
 
 .requestsContainer {
-  background-color: rgb(251, 243, 231);
+  border: solid 1px rgba(75,79,92,0.3);
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -19,7 +19,7 @@
   gap: 16px;
   border-radius: 8px;
   padding: 16px;
-  border: solid 1px rgb(255, 232, 196);
+  border: solid 1px rgba(75,79,92,0.3);
 }
 
 .formElement {
@@ -37,14 +37,14 @@
 .input {
   height: 40px;
   border-radius: 8px;
-  border: solid 1px grey;
+  border: solid 1px rgba(75,79,92,0.3);
   box-sizing: border-box;
   padding: 8px;
 }
 
 textarea {
   border-radius: 8px;
-  border: solid 1px grey;
+  border: solid 1px rgba(75,79,92,0.3);
   box-sizing: border-box;
   padding: 8px;
   width: 100%;
@@ -53,7 +53,7 @@ textarea {
 
 .input:focus, .input:hover, textarea:focus, textarea:hover {
   outline: none;
-  border: solid 1px brown;
+  border: solid 1px rgb(75,79,92);
 }
 
 .label {
@@ -63,7 +63,7 @@ textarea {
 }
 
 .input:focus + .label, .input:hover + .label {
-  color: brown;
+  color: rgb(75,79,92);
 }
 
 .buttonsContainer {
@@ -73,8 +73,8 @@ textarea {
 }
 
 .actionButton {
-  background-color: brown;
-  border: solid 1px brown;
+  background-color: rgb(75,79,92);
+  border: solid 1px rgb(75,79,92);
   color: white;
   font-size: 16px;
   cursor: pointer;
@@ -85,12 +85,12 @@ textarea {
 
 .actionButton:hover {
   background-color: white;
-  color: brown;
+  color: rgb(75,79,92);
   transition: all 0.2s ease-out;
 }
 
 .textButton {
-  color: brown;
+  color: rgb(75,79,92);
   border: none;
   background-color: white;
   cursor: pointer;
@@ -139,4 +139,58 @@ h3 {
 
 .hidden {
   display: none;
+}
+
+.reqContainer {
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.reqContainer-GET {
+  border: solid 2px rgb(81, 156, 254);
+  background-color: rgba(81, 156, 254, 0.1);
+}
+
+.reqContainer-POST {
+  border: solid 2px rgb(63, 196, 126);
+  background-color: rgba(63, 196, 126, 0.1);
+}
+
+.reqContainer-PUT {
+  border: solid 2px rgb(249, 143, 27);
+  background-color: rgba(249, 143, 27, 0.1);
+}
+
+
+.methodName {
+  padding: 4px 8px;
+  color: white;
+  border-radius: 4px;
+  width: fit-content;
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+}
+
+.method-GET {
+  background-color: rgb(81, 156, 254);
+}
+
+.method-POST {
+  background-color: rgb(63, 196, 126);
+}
+
+.method-PUT {
+  background-color: rgb(249, 143, 27);
+}
+
+.emptyState {
+  font-size: 40px;
+  text-align: center;
+  color: rgb(176, 173, 173);
+  font-weight: 600;
 }
