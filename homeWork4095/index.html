@@ -79,6 +79,7 @@
         </div>
       </form>
     </div>
+    <div id="response"></div>
 
     <script async>
       let parametrs = [];
@@ -213,24 +214,50 @@
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
 
-      function handleMethodSend() {
-        const formValues = handleGetFormData();
+      async function handleMethodSend() {
+        try {
+          const formValues = handleGetFormData();
 
-        fetch("/send-request", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formValues),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`HTTP error: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then((json) => {
-            console.log("!!!");
-          })
-          .catch((err) => console.error(`Fetch problem: ${err.message}`));
+          const response = await fetch("/send-request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formValues),
+          });
+
+          const json = await response.json();
+          const bodyData = json.json;
+          const headers = json.headers;
+          const status = json.status;
+
+          const container = document.getElementById("response");
+          container.innerHTML = "";
+
+          const title = document.createElement("h3");
+          title.setAttribute("id", "responseTitle");
+          container.classList.add("response")
+          container.appendChild(title).innerHTML = "Ответ на запрос";
+
+          const data = `
+            <div>Status: ${status}</div>
+          `;
+          const dataContainer = document.createElement("div");
+          container.appendChild(dataContainer).innerHTML = data;
+
+          headers.forEach(([name, value]) => {
+            const rowContainer = document.createElement("div");
+            container.appendChild(
+              rowContainer
+            ).innerHTML = `<div>${name}: ${value}</div>`;
+          });
+
+          const bodyContainer = document.createElement("div");
+          const bodyTitle = document.createElement("h3");
+          container.appendChild(bodyTitle).innerHTML = "Тело ответа";
+          container.appendChild(bodyContainer).innerHTML =
+            JSON.stringify(bodyData);
+        } catch (err) {
+          console.error(`Fetch problem: ${err.message}`);
+        }
       }
 
       function prepareParamRow({ id, paramName = "", paramValue = "" }) {
@@ -411,6 +438,10 @@
         const sendReqBtn = document.getElementById("sendReqBtn");
         sendReqBtn.setAttribute("disabled", true);
 
+        const container = document.getElementById("response");
+        container.innerHTML = "";
+        container.classList.remove("response");
+
         const oldSelectedRow = document.querySelector(".selectedRequest");
 
         if (oldSelectedRow) {
@@ -484,6 +515,10 @@
 
         const sendReqBtn = document.getElementById("sendReqBtn");
         sendReqBtn.setAttribute("disabled", true);
+
+        const container = document.getElementById("response");
+        container.innerHTML = "";
+        container.classList.remove("response");
 
         selectedReq = null;
       }

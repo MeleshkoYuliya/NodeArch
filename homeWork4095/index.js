@@ -46,37 +46,32 @@ webserver.get("/requests", (req, res) => {
   res.status(200).send(newData);
 });
 
-webserver.post("/send-request", (req, res) => {
-  console.log(req.body);
-  res.setHeader("Access-Control-Allow-Origin", "*");
+webserver.post("/send-request", async (req, res) => {
+  try {
+    res.setHeader("Access-Control-Allow-Origin", "*");
 
-  const options = {
-    method: req.body.method,
-    headers: req.body.headers,
-  };
+    const options = {
+      method: req.body.method,
+      headers: req.body.headers,
+    };
 
-  if (req.body.method !== "GET") {
-    options.body = req.body.body;
+    if (req.body.method !== "GET") {
+      options.body = req.body.body;
+    }
+
+    const params = req.body.params
+      ? new URLSearchParams(req.body.params).toString()
+      : "";
+
+    const url = params ? `${req.body.url}?${params}` : req.body.url;
+
+    const response = await fetch(url, { ...options });
+    const json = await response.json();
+    const headers = [...response.headers];
+    res.send({ json, headers, status: response.status });
+  } catch (err) {
+    console.error(`Fetch problem: ${err.message}`);
   }
-
-  const params = req.body.params
-    ? new URLSearchParams(req.body.params).toString()
-    : "";
-
-  const url = params ? `${req.body.url}?${params}` : req.body.url;
-
-  fetch(url, { ...options })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-      console.log(response.headers.get('content-type'))
-      return response.json();
-    })
-    .then((json) => {
-      res.send(json);
-    })
-    .catch((err) => console.error(`Fetch problem: ${err.message}`));
 });
 
 webserver.listen(port, () => {

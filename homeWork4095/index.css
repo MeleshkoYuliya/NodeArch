@@ -205,3 +205,13 @@ h3 {
   color: rgba(75,79,92,0.5);
   border-color: rgba(75,79,92,0.1);
 }
+
+.response {
+  border: solid 1px rgba(75,79,92,0.3);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+}
