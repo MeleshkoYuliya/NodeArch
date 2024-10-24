@@ -194,3 +194,7 @@ h3 {
   color: rgb(176, 173, 173);
   font-weight: 600;
 }
+
+.selectedRequest {
+  border-color: rgb(75,79,92);
+}

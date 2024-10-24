@@ -25,7 +25,7 @@
             <label class="label" for="method"> Метод </label>
           </div>
           <div class="formElement">
-            <input class="input" name="url" />
+            <input class="input" name="url" id="url" />
             <label class="label"> URL </label>
           </div>
         </div>
@@ -62,6 +62,7 @@
     <script async>
       let parametrs = [];
       let headers = [];
+      let requests = [];
 
       const headersOptions = [
         "Content-type",
@@ -72,19 +73,35 @@
         "Access-Control-Allow-Headers",
       ];
 
+      function createBodyBlock(inputValue = "") {
+        const container = document.getElementById("body");
+
+        if (!document.getElementById("bodyTitle")) {
+          const title = document.createElement("h3");
+          title.setAttribute("id", "bodyTitle");
+          container.appendChild(title).innerHTML = "Тело Запроса";
+        }
+
+        let textArea = document.getElementById("bodyInput");
+
+        if (!document.getElementById("bodyInput")) {
+          textArea = document.createElement("textarea");
+          textArea.setAttribute("name", "bodyInput");
+          textArea.setAttribute("id", "bodyInput");
+          textArea.setAttribute("rows", 8);
+          container.appendChild(textArea);
+        }
+
+        textArea.value = inputValue;
+      }
+
       function onSelectChange(event) {
         const value = event.value;
         const bodyInput = document.getElementById("bodyInput");
         const container = document.getElementById("body");
 
         if ((value === "POST" || value === "PUT") && !bodyInput) {
-          const title = document.createElement("h3");
-          title.setAttribute("id", "headersTitle");
-          container.appendChild(title).innerHTML = "Тело Запроса";
-          const textArea = document.createElement("textarea");
-          textArea.setAttribute("name", "bodyInput");
-          textArea.setAttribute("id", "bodyInput");
-          container.appendChild(textArea);
+          createBodyBlock();
         }
 
         if (value === "GET" && bodyInput) {
@@ -158,37 +175,46 @@
             if (!response.ok) {
               throw new Error(`HTTP error: ${response.status}`);
             }
-            handleGetRequests()
+            handleGetRequests();
           })
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
 
-      function handleAddParamsRow() {
-        const newId = parametrs.length
-          ? parametrs[parametrs.length - 1].id + 1
-          : 1;
-        parametrs.push({ id: newId });
-        const container = document.getElementById("parametrs");
-
+      function prepareParamRow({ id, paramName = "", paramValue = "" }) {
         const datarow = `
-          <input class="input" name="paramName" />
-          <input class="input" name="paramValue" />
-          <button class="textButton" type="button" onclick="handleDeleteParamRow(${newId})">
+          <input class="input" name="paramName" value="${paramName}" />
+          <input class="input" name="paramValue" value="${paramValue}" />
+          <button class="textButton" type="button" onclick="handleDeleteParamRow(${id})">
             Удалить
           </button>
         `;
+        return datarow;
+      }
 
-        if (parametrs.length === 1) {
+      function insertParamRow({ id, paramName = "", paramValue = "" }) {
+        const container = document.getElementById("parametrs");
+        const datarow = prepareParamRow({ id, paramName, paramValue });
+
+        if (!document.getElementById("parametrsTitle")) {
           const title = document.createElement("h3");
           title.setAttribute("id", "parametrsTitle");
           container.appendChild(title).innerHTML = "Параметры";
         }
         const content = container.innerHTML;
         const node = document.createElement("div");
-        node.setAttribute("id", `parametr-${newId}`);
+        node.setAttribute("id", `parametr-${id}`);
         node.classList.add("paramRow");
         node.innerHTML = datarow;
         container.appendChild(node);
+      }
+
+      function handleAddParamsRow() {
+        const newId = parametrs.length
+          ? parametrs[parametrs.length - 1].id + 1
+          : 1;
+
+        parametrs.push({ id: newId });
+        insertParamRow({ id: newId });
       }
 
       function handleDeleteParamRow(id) {
@@ -202,6 +228,35 @@
         }
       }
 
+      function insertHeaderRow({ id, headerName = "", headerValue = "" }) {
+        const container = document.getElementById("headers");
+
+        if (!document.getElementById("headersTitle")) {
+          const title = document.createElement("h3");
+          title.setAttribute("id", "headersTitle");
+          container.appendChild(title).innerHTML = "Заголовки";
+        }
+
+        const datarow = `
+          <select class="input" name="headerName" id="headerName" value="${headerName}">
+            ${headersOptions.map(
+              (item) => `<option value="${item}">${item}</option>`
+            )}
+          </select>
+          <input class="input" name="headerValue" value="${headerValue}" />
+          <button class="textButton" type="button" onclick="handleDeleteHeaderRow(${id})">
+            Удалить
+          </button>
+        `;
+
+        const content = container.innerHTML;
+        const node = document.createElement("div");
+        node.setAttribute("id", `header-${id}`);
+        node.classList.add("paramRow");
+        node.innerHTML = datarow;
+        container.appendChild(node);
+      }
+
       function handleAddHeaderRow() {
         const newId = headers.length ? headers[headers.length - 1].id + 1 : 1;
         headers = [...headers, { id: newId }];
@@ -211,32 +266,7 @@
           btn.classList.add("hidden");
         }
 
-        const container = document.getElementById("headers");
-
-        if (headers.length === 1) {
-          const title = document.createElement("h3");
-          title.setAttribute("id", "headersTitle");
-          container.appendChild(title).innerHTML = "Заголовки";
-        }
-
-        const datarow = `
-          <select class="input" name="headerName" id="headerName">
-            ${headersOptions.map(
-              (item) => `<option value="${item}">${item}</option>`
-            )}
-          </select>
-          <input class="input" name="headerValue" />
-          <button class="textButton" type="button" onclick="handleDeleteHeaderRow(${newId})">
-            Удалить
-          </button>
-        `;
-
-        const content = container.innerHTML;
-        const node = document.createElement("div");
-        node.setAttribute("id", `header-${newId}`);
-        node.classList.add("paramRow");
-        node.innerHTML = datarow;
-        container.appendChild(node);
+        insertHeaderRow({ id: newId });
       }
 
       function handleDeleteHeaderRow(id) {
@@ -270,6 +300,8 @@
             const requestsContainer =
               document.getElementById("requestsContainer");
 
+            requests = json;
+
             if (!json.length) {
               const dataspan = `
                 <div class="emptyState">Нет сохраненных запросов</div>
@@ -285,7 +317,19 @@
                 <div class="methodName method-${item.method}">${item.method}</div>
                 <div>${item.url}</div>
               `;
+
+              const oldEl = document.getElementById(item.id);
+              if (oldEl) {
+                requestsContainer.removeChild(oldEl);
+              }
+
               const node = document.createElement("div");
+              node.setAttribute("id", item.id);
+              node.addEventListener(
+                "click",
+                () => handleSelectRequest(item.id),
+                false
+              );
               node.classList.add("reqContainer");
               node.classList.add(`reqContainer-${item.method}`);
 
@@ -293,6 +337,55 @@
             }
           })
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
+      }
+
+      function handleSelectRequest(id) {
+        const headersElem = document.getElementById("headers");
+        headersElem.innerHTML = "";
+
+        const element = document.getElementById("parametrs");
+        element.innerHTML = "";
+
+        const oldSelectedRow = document.querySelector(".selectedRequest");
+
+        if (oldSelectedRow) {
+          oldSelectedRow.classList.remove("selectedRequest");
+        }
+        const selectedRow = document.getElementById(id);
+        selectedRow.classList.add("selectedRequest");
+
+        const selectedData = requests.find((item) => item.id === id);
+        const urlInput = document.getElementById("url");
+        urlInput.value = selectedData.url;
+
+        const methodSelect = document.getElementById("method");
+        methodSelect.value = selectedData.method;
+
+        if (selectedData.body) {
+          createBodyBlock(selectedData.body);
+        } else {
+          const container = document.getElementById("body");
+          container.innerHTML = "";
+        }
+
+        const params = Object.entries(selectedData.params);
+        if (params.length) {
+          params.forEach(([name, value], index) => {
+            insertParamRow({ id: index, paramName: name, paramValue: value });
+          });
+        }
+
+        const headersData = Object.entries(selectedData.headers);
+        if (headersData.length) {
+          const headersArr = Object.entries(selectedData.headers);
+          headersArr.forEach(([name, value], index) => {
+            insertHeaderRow({
+              id: index,
+              headerName: name,
+              headerValue: value,
+            });
+          });
+        }
       }
 
       handleGetRequests();
