@@ -54,7 +54,13 @@
             Сохранить запрос
           </button>
           <button class="actionButton">Отправить запрос</button>
-          <button class="actionButton">Очистить форму</button>
+          <button
+            class="actionButton"
+            onclick="handleClearForm()"
+            type="button"
+          >
+            Очистить форму
+          </button>
         </div>
       </form>
     </div>
@@ -346,19 +352,29 @@
         const element = document.getElementById("parametrs");
         element.innerHTML = "";
 
+        const body = document.getElementById("body");
+        body.innerHTML = "";
+
+        const urlInput = document.getElementById("url");
+        urlInput.value = "";
+
+        const methodSelect = document.getElementById("method");
+        methodSelect.value = "GET";
+
         const oldSelectedRow = document.querySelector(".selectedRequest");
 
         if (oldSelectedRow) {
           oldSelectedRow.classList.remove("selectedRequest");
+          if (oldSelectedRow.id === id) {
+            return;
+          }
         }
         const selectedRow = document.getElementById(id);
         selectedRow.classList.add("selectedRequest");
 
         const selectedData = requests.find((item) => item.id === id);
-        const urlInput = document.getElementById("url");
-        urlInput.value = selectedData.url;
 
-        const methodSelect = document.getElementById("method");
+        urlInput.value = selectedData.url;
         methodSelect.value = selectedData.method;
 
         if (selectedData.body) {
@@ -385,6 +401,29 @@
               headerValue: value,
             });
           });
+        }
+      }
+
+      function handleClearForm() {
+        const headersElem = document.getElementById("headers");
+        headersElem.innerHTML = "";
+
+        const element = document.getElementById("parametrs");
+        element.innerHTML = "";
+
+        const body = document.getElementById("body");
+        body.innerHTML = "";
+
+        const urlInput = document.getElementById("url");
+        urlInput.value = "";
+
+        const methodSelect = document.getElementById("method");
+        methodSelect.value = "GET";
+
+        const oldSelectedRow = document.querySelector(".selectedRequest");
+
+        if (oldSelectedRow) {
+          oldSelectedRow.classList.remove("selectedRequest");
         }
       }
 
