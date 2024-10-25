@@ -1,10 +1,9 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const os = require("os");
 const webserver = express();
-const { v4: uuidv4 } = require("uuid");
 const fetch = require("isomorphic-fetch");
+const crypto = require("crypto");
 
 webserver.use(express.json());
 
@@ -20,7 +19,10 @@ function saveDataSync(logFilePath, config) {
   const data = fs.readFileSync(logFilePath, { encoding: "utf8", flag: "r" });
 
   let newData = data ? JSON.parse(data) : [];
-  newData = [...newData, { ...config, id: uuidv4() }];
+  newData = [
+    ...newData,
+    { ...config, id: crypto.randomBytes(16).toString("hex") },
+  ];
 
   fs.closeSync(logFd);
 
