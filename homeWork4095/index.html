@@ -234,7 +234,7 @@
 
           const title = document.createElement("h3");
           title.setAttribute("id", "responseTitle");
-          container.classList.add("response")
+          container.classList.add("response");
           container.appendChild(title).innerHTML = "Ответ на запрос";
 
           const data = `
@@ -253,8 +253,20 @@
           const bodyContainer = document.createElement("div");
           const bodyTitle = document.createElement("h3");
           container.appendChild(bodyTitle).innerHTML = "Тело ответа";
-          container.appendChild(bodyContainer).innerHTML =
-            JSON.stringify(bodyData);
+
+          const contentTypeData = headers.find(
+            ([name, value]) => name === "content-type"
+          );
+          const [contentTypeName, contentTypeValue] = contentTypeData;
+
+          if (contentTypeValue === "application/json") {
+            container.appendChild(bodyContainer).innerHTML =
+              JSON.stringify(bodyData);
+          }
+
+          if (contentTypeValue.includes("text/html")) {
+            container.appendChild(bodyContainer).innerHTML = bodyData;
+          }
         } catch (err) {
           console.error(`Fetch problem: ${err.message}`);
         }
