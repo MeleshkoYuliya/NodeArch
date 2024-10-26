@@ -253,7 +253,18 @@
           const bodyContainer = document.createElement("div");
           const bodyTitle = document.createElement("h3");
           container.appendChild(bodyTitle).innerHTML = "Тело ответа";
+
           container.appendChild(bodyContainer).innerHTML = bodyData;
+
+          const contentTypeData = headers.find(
+            ([name, value]) => name === "content-type"
+          );
+          const [contentTypeName, contentTypeValue] = contentTypeData;
+          if (contentTypeValue.includes("text/html")) {
+            const codeContainer = document.createElement("code");
+            codeContainer.innerHTML = bodyData.replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+            container.appendChild(codeContainer);
+          }
         } catch (err) {
           console.error(`Fetch problem: ${err.message}`);
         }
