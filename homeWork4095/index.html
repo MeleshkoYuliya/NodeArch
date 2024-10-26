@@ -253,20 +253,7 @@
           const bodyContainer = document.createElement("div");
           const bodyTitle = document.createElement("h3");
           container.appendChild(bodyTitle).innerHTML = "Тело ответа";
-
-          const contentTypeData = headers.find(
-            ([name, value]) => name === "content-type"
-          );
-          const [contentTypeName, contentTypeValue] = contentTypeData;
-
-          if (contentTypeValue === "application/json") {
-            container.appendChild(bodyContainer).innerHTML =
-              JSON.stringify(bodyData);
-          }
-
-          if (contentTypeValue.includes("text/html")) {
-            container.appendChild(bodyContainer).innerHTML = bodyData;
-          }
+          container.appendChild(bodyContainer).innerHTML = bodyData;
         } catch (err) {
           console.error(`Fetch problem: ${err.message}`);
         }

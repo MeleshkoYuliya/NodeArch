@@ -71,25 +71,11 @@ webserver.post("/send-request", async (req, res) => {
     const url = params ? `${req.body.url}?${params}` : req.body.url;
 
     const response = await fetch(url, { ...options });
-
     const headers = [...response.headers];
-    const contentTypeData = headers.find(
-      ([name, value]) => name === "content-type"
-    );
-    const [contentTypeName, contentTypeValue] = contentTypeData;
+    const json = await response.text();
+    res.send({ json, headers, status: response.status });
 
-    if (contentTypeValue === "application/json") {
-      const json = await response.json();
-      res.send({ json, headers, status: response.status });
-    }
-
-    if (contentTypeValue.includes("text/html")) {
-      const json = await response.text();
-      res.setHeader("Content-Type", "text/html");
-      res.send({ json, headers, status: response.status });
-    }
   } catch (err) {
-    console.log(err.response);
     res.send({ status: 400 });
     console.error(`Fetch problem: ${err.message}`);
   }
