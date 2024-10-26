@@ -210,12 +210,17 @@
               throw new Error(`HTTP error: ${response.status}`);
             }
             handleGetRequests();
+            handleClearForm();
           })
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
 
       async function handleMethodSend() {
+        const sendReqBtn = document.getElementById('sendReqBtn');
         try {
+          sendReqBtn.setAttribute("disabled", true);
+          sendReqBtn.innerHTML = 'Запрос отправляется...'
+
           const formValues = handleGetFormData();
 
           const response = await fetch("/send-request", {
@@ -228,6 +233,9 @@
           const bodyData = json.json;
           const headers = json.headers;
           const status = json.status;
+
+          sendReqBtn.innerHTML = 'Отправить запрос'
+          sendReqBtn.removeAttribute("disabled");
 
           const container = document.getElementById("response");
           container.innerHTML = "";
@@ -282,6 +290,8 @@
             container.appendChild(codeContainer);
           }
         } catch (err) {
+          sendReqBtn.innerHTML = 'Отправить запрос'
+          sendReqBtn.removeAttribute("disabled");
           console.error(`Fetch problem: ${err.message}`);
         }
       }
