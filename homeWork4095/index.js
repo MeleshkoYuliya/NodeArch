@@ -54,9 +54,9 @@ webserver.post("/send-request", async (req, res) => {
 
     const options = {
       method: req.body.method,
+      redirect: "manual",
       headers: {
         ...req.body.headers,
-        redirect: "error",
       },
     };
 
