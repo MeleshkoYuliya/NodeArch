@@ -263,7 +263,11 @@
           if (contentTypeValue.includes("image")) {
             const imgContainer = document.createElement("img");
 
-            imgContainer.setAttribute("src", `data:image/png;base64, ${bodyData}`);
+            imgContainer.setAttribute(
+              "src",
+              `data:image/png;base64, ${bodyData}`
+            );
+            imgContainer.classList.add("imgPreview");
             container.appendChild(imgContainer);
             return;
           }

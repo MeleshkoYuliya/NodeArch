@@ -215,3 +215,8 @@ h3 {
   gap: 16px;
   margin-top: 12px;
 }
+
+.imgPreview {
+  height: auto;
+  width: 300px;
+}
