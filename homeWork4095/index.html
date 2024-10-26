@@ -245,13 +245,12 @@
 
           if (headers && headers.length) {
             headers.forEach(([name, value]) => {
-            const rowContainer = document.createElement("div");
-            container.appendChild(
-              rowContainer
-            ).innerHTML = `<div>${name}: ${value}</div>`;
-          });
+              const rowContainer = document.createElement("div");
+              container.appendChild(
+                rowContainer
+              ).innerHTML = `<div>${name}: ${value}</div>`;
+            });
           }
-
 
           const bodyTitle = document.createElement("h3");
           container.appendChild(bodyTitle).innerHTML = "Тело ответа";
@@ -261,6 +260,13 @@
           );
           const [contentTypeName, contentTypeValue] = contentTypeData;
 
+          if (contentTypeValue.includes("image")) {
+            const imgContainer = document.createElement("img");
+
+            imgContainer.setAttribute("src", `data:image/png;base64, ${bodyData}`);
+            container.appendChild(imgContainer);
+            return;
+          }
           const bodyContainer = document.createElement("div");
           container.appendChild(bodyContainer).innerHTML = bodyData;
 

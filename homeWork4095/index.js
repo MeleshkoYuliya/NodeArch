@@ -72,6 +72,17 @@ webserver.post("/send-request", async (req, res) => {
 
     const response = await fetch(url, { ...options });
     const headers = [...response.headers];
+    const contentTypeData = headers.find(
+      ([name, value]) => name === "content-type"
+    );
+    const [_, contentTypeValue] = contentTypeData;
+
+    if (contentTypeValue.includes("image")) {
+      const myBlob = await response.buffer();
+      const b64 = myBlob.toString('base64')
+      res.send({ json: b64, headers, status: response.status });
+      return
+    }
     const json = await response.text();
     res.send({ json, headers, status: response.status });
   } catch (err) {
