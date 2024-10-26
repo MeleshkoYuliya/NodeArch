@@ -74,9 +74,9 @@ webserver.post("/send-request", async (req, res) => {
     const headers = [...response.headers];
     const json = await response.text();
     res.send({ json, headers, status: response.status });
-
   } catch (err) {
-    res.send({ status: 400 });
+    console.log(err);
+    res.send({ status: 500, json: { text: err.message } });
     console.error(`Fetch problem: ${err.message}`);
   }
 });

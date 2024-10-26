@@ -243,26 +243,32 @@
           const dataContainer = document.createElement("div");
           container.appendChild(dataContainer).innerHTML = data;
 
-          headers.forEach(([name, value]) => {
+          if (headers && headers.length) {
+            headers.forEach(([name, value]) => {
             const rowContainer = document.createElement("div");
             container.appendChild(
               rowContainer
             ).innerHTML = `<div>${name}: ${value}</div>`;
           });
+          }
 
-          const bodyContainer = document.createElement("div");
+
           const bodyTitle = document.createElement("h3");
           container.appendChild(bodyTitle).innerHTML = "Тело ответа";
-
-          container.appendChild(bodyContainer).innerHTML = bodyData;
 
           const contentTypeData = headers.find(
             ([name, value]) => name === "content-type"
           );
           const [contentTypeName, contentTypeValue] = contentTypeData;
+
+          const bodyContainer = document.createElement("div");
+          container.appendChild(bodyContainer).innerHTML = bodyData;
+
           if (contentTypeValue.includes("text/html")) {
             const codeContainer = document.createElement("code");
-            codeContainer.innerHTML = bodyData.replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+            codeContainer.innerHTML = bodyData
+              .replaceAll("<", "&lt;")
+              .replaceAll(">", "&gt;");
             container.appendChild(codeContainer);
           }
         } catch (err) {
