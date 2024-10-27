@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const url = require("url");
 
 const webserver = express();
 
@@ -46,13 +47,13 @@ const handleValidate = ({ age, name }) => {
 
 const getForm = (data) => {
   data = data || {
-    name: '',
-    age: '',
+    name: "",
+    age: "",
     errors: {
-      name: '',
-      age: '',
-    }
-  }
+      name: "",
+      age: "",
+    },
+  };
   return `
     <html>
       <body>
@@ -93,25 +94,60 @@ webserver.post("/form", (req, res) => {
   const errors = handleValidate({ age: req.body.age, name: req.body.name });
 
   if (errors.age || errors.name) {
-    const data = {
-      name: req.body.name,
-      age: req.body.age,
-      errors,
-    };
-    res.send(getForm(data));
+    res.redirect(
+      301,
+      url.format({
+        pathname: "/form",
+        query: {
+          name: req.body.name,
+          age: req.body.age,
+          nameError: errors.name,
+          ageError: errors.age,
+        },
+      })
+    );
   } else {
-    res.send(`
-      <html>
-        <body>
-          <h1>Thank you for your submission! Received data: Name - ${req.body.name}, Age - ${req.body.age}</h1>
-        </body>
-      </html>
-  `);
+    res.redirect(
+      301,
+      url.format({
+        pathname: "/form",
+        query: {
+          name: req.body.name,
+          age: req.body.age,
+        },
+      })
+    );
   }
 });
 
 webserver.get("/form", (req, res) => {
-  res.status(200).send(getForm());
+  console.log(req.query);
+  const query = req.query;
+
+  if (query.name && query.age && !query.ageError && !query.nameError) {
+    res.send(`
+      <html>
+        <body>
+          <h1>Thank you for your submission! Received data: Name - ${req.query.name}, Age - ${req.query.age}</h1>
+        </body>
+      </html>
+  `);
+  }
+
+  if (query.ageError || query.nameError) {
+    res.send(
+      getForm({
+        name: query.name,
+        age: query.age,
+        errors: {
+          name: query.nameError || "",
+          age: query.ageError || "",
+        },
+      })
+    );
+  }
+
+  res.send(getForm());
 });
 
 webserver.listen(port, () => {
