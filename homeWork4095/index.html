@@ -420,7 +420,8 @@
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
 
-      function handleSelectRequest(id) {
+      function handleSelectRequest(el) {
+        const id = el.getAttribute('id')
         const headersElem = document.getElementById("headers");
         headersElem.innerHTML = "";
 
@@ -504,17 +505,6 @@
             const requestsContainer =
               document.getElementById("requestsContainer");
             requestsContainer.innerHTML = text;
-
-            const allRequests = requestsContainer.querySelectorAll(".reqNode");
-
-            allRequests.forEach((node) => {
-              const id = node.getAttribute("id");
-              node.addEventListener(
-                "click",
-                () => handleSelectRequest(id),
-                false
-              );
-            });
           })
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
