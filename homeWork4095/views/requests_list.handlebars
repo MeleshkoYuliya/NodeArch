@@ -1,0 +1,10 @@
+{{#each list}}
+  <div
+    id="{{this.id}}"
+    class="reqNode reqContainer reqContainer-{{this.method}}"
+    onclick="handleSelectRequest"
+  >
+    <div class="methodName method-{{this.method}}">{{this.method}}</div>
+    <div>{{this.url}}</div>
+  </div>
+{{/each}}

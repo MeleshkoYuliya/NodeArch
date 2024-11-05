@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <link rel="stylesheet" type="text/css" href="index.css" />
+    <base href="/" />
   </head>
   <body>
     <div class="mainContainer" id="mainContainer">
-      <div class="requestsContainer" id="requestsContainer"></div>
+      <div id="requestsContainer"></div>
       <form class="formContainer" method="POST" name="methodConfig" novalidate>
         <div class="formRow">
           <div class="formElement">
@@ -210,16 +211,17 @@
               throw new Error(`HTTP error: ${response.status}`);
             }
             handleGetRequests();
+            handleGetRequestsPage();
             handleClearForm();
           })
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
 
       async function handleMethodSend() {
-        const sendReqBtn = document.getElementById('sendReqBtn');
+        const sendReqBtn = document.getElementById("sendReqBtn");
         try {
           sendReqBtn.setAttribute("disabled", true);
-          sendReqBtn.innerHTML = 'Запрос отправляется...'
+          sendReqBtn.innerHTML = "Запрос отправляется...";
 
           const formValues = handleGetFormData();
 
@@ -234,7 +236,7 @@
           const headers = json.headers;
           const status = json.status;
 
-          sendReqBtn.innerHTML = 'Отправить запрос'
+          sendReqBtn.innerHTML = "Отправить запрос";
           sendReqBtn.removeAttribute("disabled");
 
           const container = document.getElementById("response");
@@ -290,7 +292,7 @@
             container.appendChild(codeContainer);
           }
         } catch (err) {
-          sendReqBtn.innerHTML = 'Отправить запрос'
+          sendReqBtn.innerHTML = "Отправить запрос";
           sendReqBtn.removeAttribute("disabled");
           console.error(`Fetch problem: ${err.message}`);
         }
@@ -413,44 +415,7 @@
             return response.json();
           })
           .then((json) => {
-            const requestsContainer =
-              document.getElementById("requestsContainer");
-
             requests = json;
-
-            if (!json.length) {
-              const dataspan = `
-                <div class="emptyState">Нет сохраненных запросов</div>
-              `;
-              const node = document.createElement("div");
-              requestsContainer.appendChild(node).innerHTML = dataspan;
-              return;
-            }
-
-            for (let key in json) {
-              const item = json[key];
-              const dataspan = `
-                <div class="methodName method-${item.method}">${item.method}</div>
-                <div>${item.url}</div>
-              `;
-
-              const oldEl = document.getElementById(item.id);
-              if (oldEl) {
-                requestsContainer.removeChild(oldEl);
-              }
-
-              const node = document.createElement("div");
-              node.setAttribute("id", item.id);
-              node.addEventListener(
-                "click",
-                () => handleSelectRequest(item.id),
-                false
-              );
-              node.classList.add("reqContainer");
-              node.classList.add(`reqContainer-${item.method}`);
-
-              requestsContainer.appendChild(node).innerHTML = dataspan;
-            }
           })
           .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
@@ -527,6 +492,33 @@
         }
       }
 
+      function handleGetRequestsPage() {
+        fetch("/requests-page")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error: ${response.status}`);
+            }
+            return response.text();
+          })
+          .then((text) => {
+            const requestsContainer =
+              document.getElementById("requestsContainer");
+            requestsContainer.innerHTML = text;
+
+            const allRequests = requestsContainer.querySelectorAll(".reqNode");
+
+            allRequests.forEach((node) => {
+              const id = node.getAttribute("id");
+              node.addEventListener(
+                "click",
+                () => handleSelectRequest(id),
+                false
+              );
+            });
+          })
+          .catch((err) => console.error(`Fetch problem: ${err.message}`));
+      }
+
       function handleClearForm() {
         const headersElem = document.getElementById("headers");
         headersElem.innerHTML = "";
@@ -560,6 +552,7 @@
       }
 
       handleGetRequests();
+      handleGetRequestsPage();
     </script>
   </body>
 </html>

@@ -4,10 +4,13 @@ const path = require("path");
 const webserver = express();
 const fetch = require("isomorphic-fetch");
 const crypto = require("crypto");
+const exphbs = require("express-handlebars");
 
 webserver.use(express.json());
-
 webserver.use(express.urlencoded({ extended: true }));
+webserver.engine("handlebars", exphbs());
+webserver.set("view engine", "handlebars");
+webserver.set("views", path.join(__dirname, "views"));
 
 const port = 7980;
 const logDataFN = path.join(__dirname, "_data.log");
@@ -48,6 +51,18 @@ webserver.get("/requests", (req, res) => {
   res.status(200).send(newData);
 });
 
+webserver.get("/requests-page", (req, res) => {
+  const logFd = fs.openSync(logDataFN, "a+");
+  const data = fs.readFileSync(logDataFN, { encoding: "utf8", flag: "r" });
+  fs.closeSync(logFd);
+  const newData = data ? JSON.parse(data) : [];
+
+  res.render("requests_list", {
+    layout: "main_layout",
+    list: newData.map((item) => ({ ...item, data: JSON.stringify(item) })),
+  });
+});
+
 webserver.post("/send-request", async (req, res) => {
   try {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -79,9 +94,9 @@ webserver.post("/send-request", async (req, res) => {
 
     if (contentTypeValue.includes("image")) {
       const myBlob = await response.buffer();
-      const b64 = myBlob.toString('base64')
+      const b64 = myBlob.toString("base64");
       res.send({ json: b64, headers, status: response.status });
-      return
+      return;
     }
     const json = await response.text();
     res.send({ json, headers, status: response.status });
