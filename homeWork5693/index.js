@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const { createGzip } = require("node:zlib");
 const { pipeline } = require("node:stream");
 const { createReadStream, createWriteStream } = require("node:fs");
@@ -6,7 +7,7 @@ const { createReadStream, createWriteStream } = require("node:fs");
 const { promisify } = require("node:util");
 const pipe = promisify(pipeline);
 
-const arg = process.argv[2]
+const arg = process.argv[2];
 
 async function do_gzip(input, output) {
   const gzip = createGzip();
@@ -15,33 +16,36 @@ async function do_gzip(input, output) {
   await pipe(source, gzip, destination);
 }
 
-async function print(path) {
+async function print(value) {
   try {
-    const files = await fs.promises.readdir(path, { withFileTypes: true });
+    const files = await fs.promises.readdir(value, { withFileTypes: true });
 
     console.log(
       "--------------------------------------------------------------"
     );
-    console.log(`СКАНИРУЕТСЯ ПАПКА: ${path}`);
+    console.log(`СКАНИРУЕТСЯ ПАПКА: ${value}`);
     console.log(
       "--------------------------------------------------------------"
     );
 
     for (const file of files) {
-      let createMessage = `Создается архив: ${file.name}.gz по пути ${file.path}/${file.name}.gz`;
+      let createMessage = `Создается архив: ${file.name}.gz по пути ${path.join(file.parentPath, file.name)}.gz`;
 
       let gzFile = files.find((gz) => gz.name === `${file.name}.gz`);
+
       if (gzFile) {
-        const statFile = fs.statSync(`${file.path}/${file.name}`);
+        const statFile = await fs.promises.stat(path.join(file.parentPath, file.name));
         const fileModDTstatFile = new Date(statFile.mtime);
 
-        const statGzFile = fs.statSync(`${file.path}/${gzFile.name}`);
+        const statGzFile = await fs.promises.stat(path.join(file.parentPath, gzFile.name));
         const fileModDTstatGzFile = new Date(statGzFile.birthtimeMs);
 
         if (fileModDTstatFile > fileModDTstatGzFile) {
-          createMessage = `Обновляется архив: ${file.name}.gz по пути ${file.path}/${file.name}.gz`;
+          createMessage = `Обновляется архив: ${
+            file.name
+          }.gz по пути ${path.join(file.parentPath, gzFile.name)}`;
 
-          fs.unlinkSync(`${file.path}/${gzFile.name}`);
+          fs.unlinkSync(path.join(file.parentPath, gzFile.name));
           gzFile = null;
         }
       }
@@ -54,22 +58,22 @@ async function print(path) {
       ) {
         console.log(createMessage);
         await do_gzip(
-          `${file.path}/${file.name}`,
-          `${file.path}/${file.name}.gz`
+          path.join(file.parentPath, file.name),
+          path.join(file.parentPath, `${file.name}.gz`)
         );
         console.log(
-          `Архив: ${file.name}.gz по пути ${file.path}/${file.name}.gz Готов!`
+          `Архив: ${file.name}.gz по пути ${path.join(file.parentPath, file.name)}.gz Готов!`
         );
         console.log("              ");
       }
 
       if (file.isDirectory()) {
-        await print(`${file.path}/${file.name}`);
+        await print(path.join(file.parentPath, file.name));
       }
     }
   } catch (err) {
-    console.log("Wrong path!");
+    console.log(err);
   }
 }
 
-print(arg)
+print(arg);
