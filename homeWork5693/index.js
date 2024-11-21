@@ -45,7 +45,7 @@ async function print(value) {
             file.name
           }.gz по пути ${path.join(value, gzFile.name)}`;
 
-          fs.unlinkSync(path.join(value, gzFile.name));
+          await fs.promises.unlink(path.join(value, gzFile.name));
           gzFile = null;
         }
       }
