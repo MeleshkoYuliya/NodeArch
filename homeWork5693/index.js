@@ -29,23 +29,23 @@ async function print(value) {
     );
 
     for (const file of files) {
-      let createMessage = `Создается архив: ${file.name}.gz по пути ${path.join(file.parentPath, file.name)}.gz`;
+      let createMessage = `Создается архив: ${file.name}.gz по пути ${path.join(value, file.name)}.gz`;
 
       let gzFile = files.find((gz) => gz.name === `${file.name}.gz`);
 
       if (gzFile) {
-        const statFile = await fs.promises.stat(path.join(file.parentPath, file.name));
+        const statFile = await fs.promises.stat(path.join(value, file.name));
         const fileModDTstatFile = new Date(statFile.mtime);
 
-        const statGzFile = await fs.promises.stat(path.join(file.parentPath, gzFile.name));
+        const statGzFile = await fs.promises.stat(path.join(value, gzFile.name));
         const fileModDTstatGzFile = new Date(statGzFile.birthtimeMs);
 
         if (fileModDTstatFile > fileModDTstatGzFile) {
           createMessage = `Обновляется архив: ${
             file.name
-          }.gz по пути ${path.join(file.parentPath, gzFile.name)}`;
+          }.gz по пути ${path.join(value, gzFile.name)}`;
 
-          fs.unlinkSync(path.join(file.parentPath, gzFile.name));
+          fs.unlinkSync(path.join(value, gzFile.name));
           gzFile = null;
         }
       }
@@ -58,17 +58,17 @@ async function print(value) {
       ) {
         console.log(createMessage);
         await do_gzip(
-          path.join(file.parentPath, file.name),
-          path.join(file.parentPath, `${file.name}.gz`)
+          path.join(value, file.name),
+          path.join(value, `${file.name}.gz`)
         );
         console.log(
-          `Архив: ${file.name}.gz по пути ${path.join(file.parentPath, file.name)}.gz Готов!`
+          `Архив: ${file.name}.gz по пути ${path.join(value, file.name)}.gz Готов!`
         );
         console.log("              ");
       }
 
       if (file.isDirectory()) {
-        await print(path.join(file.parentPath, file.name));
+        await print(path.join(value, file.name));
       }
     }
   } catch (err) {
