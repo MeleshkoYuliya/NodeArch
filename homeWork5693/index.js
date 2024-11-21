@@ -6,26 +6,7 @@ const { createReadStream, createWriteStream } = require("node:fs");
 const { promisify } = require("node:util");
 const pipe = promisify(pipeline);
 
-const readline = require("readline");
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  prompt: "Укажите путь к файлу> ",
-});
-
-rl.prompt();
-rl.on("line", async (val) => {
-  if (!val) rl.close();
-  else {
-    await print(val);
-    rl.prompt();
-  }
-});
-
-rl.on("close", () => {
-  process.exit(0);
-});
+const arg = process.argv[2]
 
 async function do_gzip(input, output) {
   const gzip = createGzip();
@@ -88,6 +69,7 @@ async function print(path) {
     }
   } catch (err) {
     console.log("Wrong path!");
-    rl.prompt();
   }
 }
+
+print(arg)
