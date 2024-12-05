@@ -19,7 +19,7 @@ webserver.use(bodyParser.json());
 
 webserver.use(express.urlencoded({ extended: false }));
 
-const port = 3550;
+const port = 7980;
 
 const wss = new WebSocket.Server({ port: 8080 });
 
@@ -78,14 +78,14 @@ webserver.post("/upload", busboy(), (req, res) => {
       file.on("data", function (data) {
         wss.on("connection", (ws) => {
           totalDownloaded += data.length;
-          connection = ws;
           clients.push({ connection: ws, lastkeepalive: Date.now() });
           console.log("loaded " + (totalDownloaded / totalRequestLength) * 100);
           const value = (totalDownloaded / totalRequestLength) * 100;
+
           ws.send(value);
 
           ws.on("close", () => {
-            console.log("the client has disconnected");
+            console.log("the client has disconnected", clients);
           });
 
           ws.onerror = function () {
@@ -96,10 +96,11 @@ webserver.post("/upload", busboy(), (req, res) => {
             if (message === "FINISH") {
               clients.forEach((client) => {
                 if (client.connection === ws) {
-                  client.lastkeepalive = null;
-                  ws.close();
+                  client.lastkeepalive = undefined;
+                  client.connection.terminate();
                 }
               });
+              clients = clients.filter((client) => client.connection);
               return;
             }
             if (message === "KEEP_ME_ALIVE") {
@@ -116,7 +117,7 @@ webserver.post("/upload", busboy(), (req, res) => {
         console.log("file " + fieldname + " received");
         wss.on("connection", (ws) => {
           ws.send(100);
-        })
+        });
       });
     } else {
       res.redirect(
@@ -187,7 +188,7 @@ setInterval(() => {
   clients = clients.filter((client) => client.connection); // оставляем в clients только живые соединения
 }, 3000);
 
-console.log(clients)
+console.log(clients);
 
 webserver.listen(port, () => {
   console.log("web server running on port " + port);
