@@ -71,7 +71,7 @@ webserver.post("/upload", busboy(), (req, res) => {
           ws.send(value);
 
           ws.on("close", () => {
-            console.log("the client has disconnected", clients);
+            console.log("the client has disconnected");
           });
 
           ws.onerror = function () {
@@ -79,16 +79,16 @@ webserver.post("/upload", busboy(), (req, res) => {
           };
 
           ws.on("message", (message) => {
-            // if (message === "FINISH") {
-            //   clients.forEach((client) => {
-            //     if (client.connection === ws) {
-            //       client.lastkeepalive = undefined;
-            //       client.connection.terminate();
-            //     }
-            //   });
-            //   clients = clients.filter((client) => client.connection);
-            //   return;
-            // }
+            if (message === "FINISH") {
+              clients.forEach((client) => {
+                if (client.connection === ws) {
+                  client.lastkeepalive = undefined;
+                  client.connection.terminate();
+                }
+              });
+              clients = clients.filter((client) => client.connection);
+              return;
+            }
             if (message === "KEEP_ME_ALIVE") {
               clients.forEach((client) => {
                 if (client.connection === ws) client.lastkeepalive = Date.now();
