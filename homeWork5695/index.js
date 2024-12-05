@@ -2,22 +2,11 @@ const path = require("path");
 const fs = require("fs");
 const express = require("express");
 const busboy = require("connect-busboy");
-const bodyParser = require("body-parser");
 const url = require("url");
 const crypto = require("crypto");
 const WebSocket = require("ws");
 
 const webserver = express();
-
-webserver.use(
-  bodyParser.urlencoded({
-    extended: false,
-  })
-);
-
-webserver.use(bodyParser.json());
-
-webserver.use(express.urlencoded({ extended: false }));
 
 const port = 7980;
 
