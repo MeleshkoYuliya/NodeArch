@@ -55,7 +55,6 @@ webserver.post("/upload", busboy(), (req, res) => {
 
   let reqFields = {};
   let reqFiles = {};
-  let connection;
 
   req.pipe(req.busboy);
 
@@ -65,9 +64,7 @@ webserver.post("/upload", busboy(), (req, res) => {
 
   req.busboy.on("file", (fieldname, file, filename) => {
     if (filename) {
-      const fileNameArr = filename.split(".");
-      const extension = fileNameArr[fileNameArr.length - 1];
-      const storedPFN = path.join(__dirname, "uploads", `${id}.${extension}`);
+      const storedPFN = path.join(__dirname, "uploads", `${id}-${filename}`);
 
       reqFiles[fieldname] = { originalFN: filename, storedPFN: storedPFN };
 
