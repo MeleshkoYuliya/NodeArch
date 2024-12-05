@@ -158,19 +158,19 @@ webserver.get("/file/:id", async (req, res) => {
   res.sendFile(currFilePath);
 });
 
-setInterval(() => {
-  timer++;
-  clients.forEach((client) => {
-    if (Date.now() - client.lastkeepalive > 12000) {
-      client.connection.terminate(); // если клиент уже давно не отчитывался что жив - закрываем соединение
-      client.connection = null;
-      console.log(
-        `[${port}] ` + "один из клиентов отключился, закрываем соединение с ним"
-      );
-    } else client.connection.send("timer=" + timer);
-  });
-  clients = clients.filter((client) => client.connection); // оставляем в clients только живые соединения
-}, 3000);
+// setInterval(() => {
+//   timer++;
+//   clients.forEach((client) => {
+//     if (Date.now() - client.lastkeepalive > 12000) {
+//       client.connection.terminate(); // если клиент уже давно не отчитывался что жив - закрываем соединение
+//       client.connection = null;
+//       console.log(
+//         `[${port}] ` + "один из клиентов отключился, закрываем соединение с ним"
+//       );
+//     } else client.connection.send("timer=" + timer);
+//   });
+//   clients = clients.filter((client) => client.connection); // оставляем в clients только живые соединения
+// }, 3000);
 
 webserver.listen(port, () => {
   console.log("web server running on port " + port);
