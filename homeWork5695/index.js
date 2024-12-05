@@ -52,7 +52,7 @@ webserver.post("/upload", busboy(), (req, res) => {
   });
 
   req.busboy.on("file", (fieldname, file, filename) => {
-    if (filename) {
+    if (filename.filename || filename) {
       const storedPFN = path.join(__dirname, "uploads", `${id}-${filename.filename || filename}`);
 
       reqFiles[fieldname] = { originalFN: filename.filename || filename, storedPFN: storedPFN };
@@ -134,8 +134,6 @@ webserver.post("/upload", busboy(), (req, res) => {
   });
 });
 
-console.log(clients);
-
 webserver.get("/info", (req, res) => {
   const logFd = fs.openSync(logFN, "a+");
   const data = fs.readFileSync(logFN, { encoding: "utf8", flag: "r" });
@@ -163,7 +161,7 @@ webserver.get("/file/:id", async (req, res) => {
 setInterval(() => {
   timer++;
   clients.forEach((client) => {
-    if (!client.lastkeepalive || Date.now() - client.lastkeepalive > 12000) {
+    if (Date.now() - client.lastkeepalive > 12000) {
       client.connection.terminate(); // если клиент уже давно не отчитывался что жив - закрываем соединение
       client.connection = null;
       console.log(
@@ -173,8 +171,6 @@ setInterval(() => {
   });
   clients = clients.filter((client) => client.connection); // оставляем в clients только живые соединения
 }, 3000);
-
-console.log(clients);
 
 webserver.listen(port, () => {
   console.log("web server running on port " + port);
