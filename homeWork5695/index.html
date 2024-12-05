@@ -76,6 +76,16 @@
         font-size: 16px;
         outline: none;
       }
+
+      .progressContainer {
+        height: 6px;
+        width: 100%;
+        background-color: rgba(0, 0, 0, 0.02);
+      }
+      .progressBar {
+        height: 6px;
+        background-color: red;
+      }
     </style>
   </head>
   <body>
@@ -93,6 +103,7 @@
       <input id="file-upload" type="file" name="photo" />
       <input type="submit" value="Сохранить" class="button" id="save" />
     </form>
+    <div id="progress"></div>
     <div id="info" class="info"></div>
     <script async>
       const inputFile = document.getElementById("file-upload");
@@ -140,7 +151,6 @@
             return response.json();
           })
           .then((json) => {
-            console.log(json);
             for (let key in json) {
               const item = json[key];
               const dataspan = `
@@ -175,6 +185,36 @@
       }
 
       handleFilesInfo();
+
+      const ws = new WebSocket("ws://localhost:8080");
+      ws.onopen = () => {
+        console.log("opened");
+      };
+      ws.onclose = () => {
+        console.log("closed");
+      };
+      ws.onmessage = (event) => {
+        const datadiv = `
+          <div class='progressBar' style={{ width: ${event.data}% }}>
+          </div>
+        `;
+
+        const node = document.createElement("div");
+        node.classList.add("progressContainer");
+        node.setAttribute("id", "progressItem");
+
+        const oldEl = document.getElementById("progressItem");
+        if (oldEl) {
+          document.getElementById("progress").removeChild(oldEl);
+        }
+        document.getElementById("progress").appendChild(node).innerHTML =
+          datadiv;
+
+        if (Number(event.data) >= 100) {
+          ws.send("FINISH");
+          document.getElementById("progress").removeChild(node);
+        }
+      };
     </script>
   </body>
 </html>
