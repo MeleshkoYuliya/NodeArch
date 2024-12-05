@@ -4,6 +4,79 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <style>
+      body {
+        padding: 40px;
+      }
+
+      .itemTitle {
+        font-size: 18px;
+        color: grey;
+      }
+
+      .infoItem {
+        border: solid 1px green;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .infoItem:hover {
+        background-color: rgba(166, 233, 166, 0.5);
+        cursor: pointer;
+        transition: all 0.1s ease-in;
+      }
+
+      .info {
+        display: grid;
+        gap: 24px;
+        margin-top: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 300px));
+      }
+
+      .form {
+        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: fit-content;
+      }
+
+      .button {
+        background-color: rgba(166, 233, 166, 0.5);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      .custom-file-upload {
+        background-color: transparent;
+        border: solid 1px green;
+        border-radius: 8px;
+        padding: 8px 20px;
+        cursor: pointer;
+        font-size: 16px;
+        text-align: center;
+      }
+
+      .comments {
+        height: 30px;
+        border-radius: 8px;
+        min-width: 300px;
+        border: solid 1px green;
+        font-size: 16px;
+        outline: none;
+      }
+    </style>
   </head>
   <body>
     <form
@@ -11,13 +84,74 @@
       method="post"
       enctype="multipart/form-data"
       target="example"
+      class="form"
     >
-      Коментарии: <input name="comments" /><br />
-      <input type="file" name="photo" /><br />
-      <input
-        type="submit"
-        value="отправить данные формы методом POST в формате multipart/form-data с отслеживанием прогресса через busboy"
-      />
+      <div>Коментарии: <input name="comments" class="comments" /></div>
+      <label for="file-upload" class="custom-file-upload" id="upload-file-btn">
+        Загрузить файл
+      </label>
+      <input id="file-upload" type="file" name="photo" />
+      <input type="submit" value="Сохранить" class="button" id="save" />
     </form>
+    <div id="info" class="info"></div>
+    <script async>
+      const inputFile = document.getElementById("file-upload");
+      const saveBtn = document.getElementById("save");
+      saveBtn.setAttribute("disabled", true);
+
+      inputFile.addEventListener("change", onChange, false);
+
+      function onChange(e) {
+        const fileName = e.target.files[0].name;
+        const uploadBtn = document.getElementById("upload-file-btn");
+        uploadBtn.innerText = fileName;
+        if (fileName) {
+          saveBtn.removeAttribute("disabled");
+        } else {
+          saveBtn.setAttribute("disabled", true);
+        }
+        console.log(e.target.files);
+      }
+
+      function handleFilesInfo() {
+        fetch("/info", { method: "GET" })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error: ${response.status}`);
+            }
+
+            return response.json();
+          })
+          .then((json) => {
+            console.log(json);
+            for (let key in json) {
+              const item = json[key];
+              const dataspan = `
+                <div>
+                  <span class='itemTitle'>Имя файла: </span>
+                  <span>${item.originalFN}</span>
+                </div>
+                <div>
+                  <span class='itemTitle'>Комментарии: </span>
+                  <span>${item.comments}</span>
+                </div>
+              `;
+              const node = document.createElement("div");
+              node.classList.add("infoItem");
+              node.setAttribute("id", item.id);
+
+              const oldEl = document.getElementById(item.id);
+              if (oldEl) {
+                document.getElementById("info").removeChild(oldEl);
+              }
+              document.getElementById("info").appendChild(node).innerHTML =
+                dataspan;
+            }
+          })
+          .catch((err) => console.error(`Fetch problem: ${err.message}`));
+      }
+
+      handleFilesInfo();
+    </script>
   </body>
 </html>

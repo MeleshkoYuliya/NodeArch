@@ -4,6 +4,7 @@ const express = require("express");
 const busboy = require("connect-busboy");
 const bodyParser = require("body-parser");
 const url = require("url");
+const crypto = require("crypto");
 
 const webserver = express();
 
@@ -42,6 +43,7 @@ function logSync(item) {
 }
 
 webserver.post("/upload", busboy(), (req, res) => {
+  const id = crypto.randomBytes(16).toString("hex");
   const totalRequestLength = +req.headers["content-length"];
   let totalDownloaded = 0;
 
@@ -55,24 +57,36 @@ webserver.post("/upload", busboy(), (req, res) => {
   });
 
   req.busboy.on("file", (fieldname, file, filename) => {
-    const storedPFN = path.join(__dirname, "uploads", filename);
+    if (filename) {
+      const fileNameArr = filename.split(".");
+      const extension = fileNameArr[fileNameArr.length - 1];
+      const storedPFN = path.join(__dirname, "uploads", `${id}.${extension}`);
 
-    reqFiles[fieldname] = { originalFN: filename, storedPFN: storedPFN };
+      reqFiles[fieldname] = { originalFN: filename, storedPFN: storedPFN };
 
-    console.log(`Uploading of '${filename}' started`);
+      console.log(`Uploading of '${filename}' started`);
 
-    const fstream = fs.createWriteStream(storedPFN);
+      const fstream = fs.createWriteStream(storedPFN);
 
-    file.pipe(fstream);
+      file.pipe(fstream);
 
-    file.on("data", function (data) {
-      totalDownloaded += data.length;
-      console.log("loaded " + (totalDownloaded / totalRequestLength) * 100);
-    });
+      file.on("data", function (data) {
+        totalDownloaded += data.length;
+        console.log("loaded " + (totalDownloaded / totalRequestLength) * 100);
+      });
 
-    file.on("end", () => {
-      console.log("file " + fieldname + " received");
-    });
+      file.on("end", () => {
+        console.log("file " + fieldname + " received");
+      });
+    } else {
+      res.redirect(
+        301,
+        url.format({
+          pathname: "/upload",
+        })
+      );
+      return;
+    }
   });
 
   req.busboy.on("finish", async () => {
@@ -82,7 +96,7 @@ webserver.post("/upload", busboy(), (req, res) => {
         ", store filename=" +
         reqFiles.photo.storedPFN
     );
-    logSync({ ...reqFiles.photo, comments: reqFields.comments });
+    logSync({ ...reqFiles.photo, comments: reqFields.comments, id });
     res.redirect(
       301,
       url.format({
@@ -90,6 +104,17 @@ webserver.post("/upload", busboy(), (req, res) => {
       })
     );
   });
+});
+
+webserver.get("/info", (req, res) => {
+  const logFd = fs.openSync(logFN, "a+");
+  const data = fs.readFileSync(logFN, { encoding: "utf8", flag: "r" });
+  fs.closeSync(logFd);
+  const newData = data ? JSON.parse(data) : [];
+
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Content-Type", "application/json");
+  res.send(newData);
 });
 
 webserver.listen(port, () => {
