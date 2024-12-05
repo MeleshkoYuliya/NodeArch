@@ -5,6 +5,5 @@
 *.code-workspace
 **/_server.log
 **/_data.log
-**/uploads
 _nodemon.log
 nginx_caches/
