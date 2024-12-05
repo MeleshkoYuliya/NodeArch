@@ -117,6 +117,18 @@ webserver.get("/info", (req, res) => {
   res.send(newData);
 });
 
+webserver.get("/file/:id", async (req, res) => {
+  const filedId = req.params.id;
+
+  const files = await fs.promises.readdir(path.join(__dirname, "uploads"));
+  const currFile = files.find((item) => item.includes(filedId));
+  const currFilePath = path.join(__dirname, "uploads", currFile);
+
+  res.setHeader("Content-Disposition", "attachment");
+
+  res.sendFile(currFilePath);
+});
+
 webserver.listen(port, () => {
   console.log("web server running on port " + port);
 });

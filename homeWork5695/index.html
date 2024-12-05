@@ -110,7 +110,24 @@
         } else {
           saveBtn.setAttribute("disabled", true);
         }
-        console.log(e.target.files);
+      }
+
+      function download(id, name) {
+        fetch(`/file/${id}`, { method: "GET" })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error: ${response.status}`);
+            }
+
+            return response.blob();
+          })
+          .then((data) => {
+            let fakebtn = document.createElement("a");
+            fakebtn.href = window.URL.createObjectURL(new Blob([data]));
+            fakebtn.download = name;
+            fakebtn.click();
+          })
+          .catch((err) => console.error(`Fetch problem: ${err.message}`));
       }
 
       function handleFilesInfo() {
@@ -127,18 +144,24 @@
             for (let key in json) {
               const item = json[key];
               const dataspan = `
-                <div>
-                  <span class='itemTitle'>Имя файла: </span>
-                  <span>${item.originalFN}</span>
-                </div>
-                <div>
-                  <span class='itemTitle'>Комментарии: </span>
-                  <span>${item.comments}</span>
-                </div>
-              `;
+                      <div>
+                        <span class='itemTitle'>Имя файла: </span>
+                        <span>${item.originalFN}</span>
+                      </div>
+                      <div>
+                        <span class='itemTitle'>Комментарии: </span>
+                        <span>${item.comments}</span>
+                      </div>
+                    `;
               const node = document.createElement("div");
               node.classList.add("infoItem");
               node.setAttribute("id", item.id);
+
+              node.addEventListener(
+                "click",
+                () => download(item.id, item.originalFN),
+                false
+              );
 
               const oldEl = document.getElementById(item.id);
               if (oldEl) {
