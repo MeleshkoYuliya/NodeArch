@@ -41,22 +41,11 @@ let totalDownloaded = 0;
 webserver.post("/upload", busboy(), (req, res) => {
   let connection;
   wss.on("connection", (ws) => {
-    
     connection = ws;
     clients.push({ connection: ws, lastkeepalive: Date.now() });
     console.log("establish websocket connection");
 
     ws.on("message", (message) => {
-      // if (message === "FINISH") {
-      //   clients.forEach((client) => {
-      //     if (client.connection === ws) {
-      //       client.lastkeepalive = undefined;
-      //       client.connection.terminate();
-      //     }
-      //   });
-      //   clients = clients.filter((client) => client.connection);
-      //   return;
-      // }
       if (message === "KEEP_ME_ALIVE") {
         clients.forEach((client) => {
           if (client.connection === ws) client.lastkeepalive = Date.now();

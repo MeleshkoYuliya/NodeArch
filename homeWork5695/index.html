@@ -118,6 +118,7 @@
       inputFile.addEventListener("change", onChange, false);
 
       async function handleUpload() {
+        socketConnect()
         let formData = new FormData();
 
         formData.append("comments", document.getElementById("comments").value);
@@ -176,15 +177,15 @@
             for (let key in json) {
               const item = json[key];
               const dataspan = `
-                      <div>
-                        <span class='itemTitle'>Имя файла: </span>
-                        <span>${item.originalFN}</span>
-                      </div>
-                      <div>
-                        <span class='itemTitle'>Комментарии: </span>
-                        <span>${item.comments}</span>
-                      </div>
-                    `;
+                <div>
+                  <span class='itemTitle'>Имя файла: </span>
+                  <span>${item.originalFN}</span>
+                </div>
+                <div>
+                  <span class='itemTitle'>Комментарии: </span>
+                  <span>${item.comments}</span>
+                </div>
+              `;
               const node = document.createElement("div");
               node.classList.add("infoItem");
               node.setAttribute("id", item.id);
@@ -208,33 +209,35 @@
 
       handleFilesInfo();
 
-      const ws = new WebSocket("ws://localhost:7981/");
-      ws.onopen = () => {
-        console.log("opened");
-      };
-      ws.onclose = () => {
-        console.log("closed");
-      };
-      ws.onmessage = (event) => {
-        const datadiv = `
+      const socketConnect = () => {
+        const ws = new WebSocket("ws://localhost:7981/");
+        ws.onopen = () => {
+          console.log("opened");
+        };
+        ws.onclose = () => {
+          console.log("closed");
+        };
+        ws.onmessage = (event) => {
+          const datadiv = `
           <div class='progressBar' style='width:${event.data}%;'></div>
         `;
 
-        const node = document.createElement("div");
-        node.classList.add("progressContainer");
-        node.setAttribute("id", "progressItem");
+          const node = document.createElement("div");
+          node.classList.add("progressContainer");
+          node.setAttribute("id", "progressItem");
 
-        const oldEl = document.getElementById("progressItem");
-        if (oldEl) {
-          document.getElementById("progress").removeChild(oldEl);
-        }
-        document.getElementById("progress").appendChild(node).innerHTML =
-          datadiv;
+          const oldEl = document.getElementById("progressItem");
+          if (oldEl) {
+            document.getElementById("progress").removeChild(oldEl);
+          }
+          document.getElementById("progress").appendChild(node).innerHTML =
+            datadiv;
 
-        if (Number(event.data) >= 100 || !Number(event.data)) {
-          ws.send("FINISH");
-          document.getElementById("progress").removeChild(node);
-        }
+          if (Number(event.data) >= 100 || !Number(event.data)) {
+            ws.send("FINISH");
+            document.getElementById("progress").removeChild(node);
+          }
+        };
       };
     </script>
   </body>
