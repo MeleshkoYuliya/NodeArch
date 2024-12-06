@@ -10,7 +10,7 @@ const webserver = express();
 
 const port = 7980;
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 7981 });
 
 const logFN = path.join(__dirname, "_data.log");
 
