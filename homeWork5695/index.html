@@ -195,8 +195,7 @@
       };
       ws.onmessage = (event) => {
         const datadiv = `
-          <div class='progressBar' style={{ width: ${event.data}% }}>
-          </div>
+          <div>${event.data}%</div>
         `;
 
         const node = document.createElement("div");
@@ -210,7 +209,7 @@
         document.getElementById("progress").appendChild(node).innerHTML =
           datadiv;
 
-        if (Number(event.data) >= 100) {
+        if (Number(event.data) >= 100 || !Number(event.data)) {
           ws.send("FINISH");
           document.getElementById("progress").removeChild(node);
         }

@@ -36,11 +36,42 @@ function logSync(item) {
 
 let clients = [];
 let timer = 0;
+let totalDownloaded = 0;
 
 webserver.post("/upload", busboy(), (req, res) => {
+  wss.on("connection", (ws) => {
+    clients.push({ connection: ws, lastkeepalive: Date.now() });
+    console.log("establish websocket connection");
+
+    ws.on("message", (message) => {
+      if (message === "FINISH") {
+        clients.forEach((client) => {
+          if (client.connection === ws) {
+            client.lastkeepalive = undefined;
+            client.connection.terminate();
+          }
+        });
+        clients = clients.filter((client) => client.connection);
+        return;
+      }
+      if (message === "KEEP_ME_ALIVE") {
+        clients.forEach((client) => {
+          if (client.connection === ws) client.lastkeepalive = Date.now();
+        });
+      } else console.log("сервером получено сообщение от клиента: " + message);
+    });
+
+    ws.on("close", () => {
+      console.log("the client has disconnected");
+    });
+
+    ws.onerror = function () {
+      console.log("Some Error occurred");
+    };
+  });
+
   const id = crypto.randomBytes(16).toString("hex");
   const totalRequestLength = +req.headers["content-length"];
-  let totalDownloaded = 0;
 
   let reqFields = {};
   let reqFiles = {};
@@ -53,56 +84,40 @@ webserver.post("/upload", busboy(), (req, res) => {
 
   req.busboy.on("file", (fieldname, file, filename) => {
     if (filename.filename || filename) {
-      const storedPFN = path.join(__dirname, "uploads", `${id}-${filename.filename || filename}`);
+      const storedPFN = path.join(
+        __dirname,
+        "uploads",
+        `${id}-${filename.filename || filename}`
+      );
 
-      reqFiles[fieldname] = { originalFN: filename.filename || filename, storedPFN: storedPFN };
+      reqFiles[fieldname] = {
+        originalFN: filename.filename || filename,
+        storedPFN: storedPFN,
+      };
 
       const fstream = fs.createWriteStream(storedPFN);
 
       file.pipe(fstream);
 
       file.on("data", function (data) {
-        wss.on("connection", (ws) => {
-          totalDownloaded += data.length;
-          clients.push({ connection: ws, lastkeepalive: Date.now() });
-          console.log("loaded " + (totalDownloaded / totalRequestLength) * 100);
-          const value = (totalDownloaded / totalRequestLength) * 100;
+        totalDownloaded += data.length;
+        console.log("loaded " + (totalDownloaded / totalRequestLength) * 100);
+        const value = (totalDownloaded / totalRequestLength) * 100;
 
-          ws.send(value);
-
-          ws.on("close", () => {
-            console.log("the client has disconnected");
-          });
-
-          ws.onerror = function () {
-            console.log("Some Error occurred");
-          };
-
-          ws.on("message", (message) => {
-            if (message === "FINISH") {
-              clients.forEach((client) => {
-                if (client.connection === ws) {
-                  client.lastkeepalive = undefined;
-                  client.connection.terminate();
-                }
-              });
-              clients = clients.filter((client) => client.connection);
-              return;
-            }
-            if (message === "KEEP_ME_ALIVE") {
-              clients.forEach((client) => {
-                if (client.connection === ws) client.lastkeepalive = Date.now();
-              });
-            } else
-              console.log("сервером получено сообщение от клиента: " + message);
-          });
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(value);
+          }
         });
       });
 
       file.on("end", () => {
         console.log("file " + fieldname + " received");
+        totalDownloaded = 0;
+
         wss.on("connection", (ws) => {
-          ws.send(100);
+          ws.send(0);
+          ws.close();
         });
       });
     } else {
