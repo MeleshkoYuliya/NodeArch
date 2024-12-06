@@ -39,21 +39,24 @@ let timer = 0;
 let totalDownloaded = 0;
 
 webserver.post("/upload", busboy(), (req, res) => {
+  let connection;
   wss.on("connection", (ws) => {
+    
+    connection = ws;
     clients.push({ connection: ws, lastkeepalive: Date.now() });
     console.log("establish websocket connection");
 
     ws.on("message", (message) => {
-      if (message === "FINISH") {
-        clients.forEach((client) => {
-          if (client.connection === ws) {
-            client.lastkeepalive = undefined;
-            client.connection.terminate();
-          }
-        });
-        clients = clients.filter((client) => client.connection);
-        return;
-      }
+      // if (message === "FINISH") {
+      //   clients.forEach((client) => {
+      //     if (client.connection === ws) {
+      //       client.lastkeepalive = undefined;
+      //       client.connection.terminate();
+      //     }
+      //   });
+      //   clients = clients.filter((client) => client.connection);
+      //   return;
+      // }
       if (message === "KEEP_ME_ALIVE") {
         clients.forEach((client) => {
           if (client.connection === ws) client.lastkeepalive = Date.now();
@@ -83,52 +86,37 @@ webserver.post("/upload", busboy(), (req, res) => {
   });
 
   req.busboy.on("file", (fieldname, file, filename) => {
-    if (filename.filename || filename) {
-      const storedPFN = path.join(
-        __dirname,
-        "uploads",
-        `${id}-${filename.filename || filename}`
-      );
+    const storedPFN = path.join(
+      __dirname,
+      "uploads",
+      `${id}-${filename.filename || filename}`
+    );
 
-      reqFiles[fieldname] = {
-        originalFN: filename.filename || filename,
-        storedPFN: storedPFN,
-      };
+    reqFiles[fieldname] = {
+      originalFN: filename.filename || filename,
+      storedPFN: storedPFN,
+    };
 
-      const fstream = fs.createWriteStream(storedPFN);
+    const fstream = fs.createWriteStream(storedPFN);
 
-      file.pipe(fstream);
+    file.pipe(fstream);
 
-      file.on("data", function (data) {
-        totalDownloaded += data.length;
-        console.log("loaded " + (totalDownloaded / totalRequestLength) * 100);
-        const value = (totalDownloaded / totalRequestLength) * 100;
+    file.on("data", function (data) {
+      totalDownloaded += data.length;
+      console.log("loaded " + (totalDownloaded / totalRequestLength) * 100);
+      const value = (totalDownloaded / totalRequestLength) * 100;
 
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(value);
-          }
-        });
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(value);
+        }
       });
+    });
 
-      file.on("end", () => {
-        console.log("file " + fieldname + " received");
-        totalDownloaded = 0;
-
-        wss.on("connection", (ws) => {
-          ws.send(0);
-          ws.close();
-        });
-      });
-    } else {
-      res.redirect(
-        301,
-        url.format({
-          pathname: "/upload",
-        })
-      );
-      return;
-    }
+    file.on("end", () => {
+      console.log("file " + fieldname + " received", connection);
+      totalDownloaded = 0;
+    });
   });
 
   req.busboy.on("finish", async () => {
@@ -139,13 +127,7 @@ webserver.post("/upload", busboy(), (req, res) => {
         reqFiles.photo.storedPFN
     );
     logSync({ ...reqFiles.photo, comments: reqFields.comments, id });
-
-    res.redirect(
-      301,
-      url.format({
-        pathname: "/upload",
-      })
-    );
+    res.send("ok");
   });
 });
 

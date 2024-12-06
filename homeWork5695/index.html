@@ -78,31 +78,36 @@
       }
 
       .progressContainer {
-        height: 6px;
+        height: 8px;
         width: 100%;
-        background-color: rgba(0, 0, 0, 0.02);
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-top: 40px;
       }
       .progressBar {
-        height: 6px;
-        background-color: red;
+        height: 8px;
+        background-color: rgb(3, 86, 3);
+        border-radius: 8px;
       }
     </style>
   </head>
   <body>
-    <form
-      action="/upload"
-      method="post"
-      enctype="multipart/form-data"
-      target="example"
-      class="form"
-    >
-      <div>Коментарии: <input name="comments" class="comments" /></div>
+    <div class="form">
+      <div>
+        Коментарии: <input name="comments" class="comments" id="comments" />
+      </div>
       <label for="file-upload" class="custom-file-upload" id="upload-file-btn">
         Загрузить файл
       </label>
       <input id="file-upload" type="file" name="photo" />
-      <input type="submit" value="Сохранить" class="button" id="save" />
-    </form>
+      <input
+        type="button"
+        value="Сохранить"
+        class="button"
+        id="save"
+        onclick="handleUpload()"
+      />
+    </div>
     <div id="progress"></div>
     <div id="info" class="info"></div>
     <script async>
@@ -111,6 +116,23 @@
       saveBtn.setAttribute("disabled", true);
 
       inputFile.addEventListener("change", onChange, false);
+
+      async function handleUpload() {
+        let formData = new FormData();
+
+        formData.append("comments", document.getElementById("comments").value);
+        formData.append(
+          "photo",
+          document.getElementById("file-upload").files[0]
+        );
+
+        const fetchOptions = {
+          method: "post",
+          body: formData,
+        };
+        await fetch("/upload", fetchOptions);
+        handleFilesInfo();
+      }
 
       function onChange(e) {
         const fileName = e.target.files[0].name;
@@ -186,7 +208,7 @@
 
       handleFilesInfo();
 
-      const ws = new WebSocket("ws://178.172.195.18:7981/");
+      const ws = new WebSocket("ws://localhost:7981/");
       ws.onopen = () => {
         console.log("opened");
       };
@@ -195,7 +217,7 @@
       };
       ws.onmessage = (event) => {
         const datadiv = `
-          <div>${event.data}%</div>
+          <div class='progressBar' style='width:${event.data}%;'></div>
         `;
 
         const node = document.createElement("div");
